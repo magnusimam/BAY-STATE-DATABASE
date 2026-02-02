@@ -1,0 +1,396 @@
+'use client'
+
+import React from "react"
+
+import Link from 'next/link'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts'
+import {
+  TrendingUp,
+  Globe,
+  Users,
+  AlertTriangle,
+  ArrowRight,
+  RefreshCw,
+  Download,
+  Filter,
+} from 'lucide-react'
+
+// BAY States data
+const bayHumanitarianData = [
+  { month: 'Jan', need: 6.85, displaced: 3.24, severity: 82 },
+  { month: 'Feb', need: 6.92, displaced: 3.31, severity: 83 },
+  { month: 'Mar', need: 7.05, displaced: 3.39, severity: 84 },
+  { month: 'Apr', need: 7.12, displaced: 3.45, severity: 84 },
+  { month: 'May', need: 7.19, displaced: 3.46, severity: 84 },
+  { month: 'Jun', need: 7.25, displaced: 3.48, severity: 84 },
+]
+
+const bayStatesDistribution = [
+  { name: 'Borno', value: 3.32, fill: '#f4b942' },
+  { name: 'Adamawa', value: 2.15, fill: '#00d4ff' },
+  { name: 'Yobe', value: 1.78, fill: '#627eea' },
+]
+
+const youthProgramsData = [
+  { month: 'Jan', enrolled: 78000, completed: 52000 },
+  { month: 'Feb', enrolled: 82000, completed: 56000 },
+  { month: 'Mar', enrolled: 85000, completed: 58000 },
+  { month: 'Apr', enrolled: 91000, completed: 63000 },
+  { month: 'May', enrolled: 95000, completed: 65000 },
+  { month: 'Jun', enrolled: 102000, completed: 71000 },
+]
+
+// Crisis Data
+const crisisData = [
+  { month: 'Jan', crises: 100, population: 5000000 },
+  { month: 'Feb', crises: 105, population: 5200000 },
+  { month: 'Mar', crises: 110, population: 5400000 },
+  { month: 'Apr', crises: 115, population: 5600000 },
+  { month: 'May', crises: 120, population: 5800000 },
+  { month: 'Jun', crises: 125, population: 6000000 },
+]
+
+// Region Data
+const regionData = [
+  { name: 'Africa', value: 10 },
+  { name: 'Asia', value: 20 },
+  { name: 'Europe', value: 30 },
+  { name: 'North America', value: 40 },
+]
+
+// Youth Data
+const youthData = [
+  { month: 'Jan', enrolled: 78000, completed: 52000 },
+  { month: 'Feb', enrolled: 82000, completed: 56000 },
+  { month: 'Mar', enrolled: 85000, completed: 58000 },
+  { month: 'Apr', enrolled: 91000, completed: 63000 },
+  { month: 'May', enrolled: 95000, completed: 65000 },
+  { month: 'Jun', enrolled: 102000, completed: 71000 },
+]
+
+// KPI Card Component
+function KPICard({
+  title,
+  value,
+  change,
+  icon: Icon,
+  trend = 'up',
+}: {
+  title: string
+  value: string
+  change: string
+  icon: React.ComponentType<{ className?: string }>
+  trend?: 'up' | 'down'
+}) {
+  return (
+    <Card className="bg-card border-border p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm text-muted-foreground mb-1">{title}</p>
+          <h3 className="text-3xl font-bold text-foreground">{value}</h3>
+          <div className={`mt-2 text-sm font-medium ${trend === 'up' ? 'text-accent' : 'text-destructive'}`}>
+            {trend === 'up' ? '↑' : '↓'} {change}
+          </div>
+        </div>
+        <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+          <Icon className="h-6 w-6 text-accent" />
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// Chart Card Component
+function ChartCard({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <Card className="bg-card border-border p-6">
+      <div className="mb-6">
+        <h3 className="font-bold text-lg text-foreground">{title}</h3>
+        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+      </div>
+      {children}
+    </Card>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <div className="p-6 space-y-8">
+      {/* Page header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">Real-time humanitarian and youth data insights</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
+            <Filter className="h-4 w-4" />
+            Filter
+          </Button>
+          <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {/* BAY States KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="People in Need"
+          value="7.25M"
+          change="+1.8% this month"
+          icon={Users}
+          trend="up"
+        />
+        <KPICard
+          title="Displaced Persons"
+          value="3.48M"
+          change="+0.9% this month"
+          icon={AlertTriangle}
+          trend="up"
+        />
+        <KPICard
+          title="LGAs Covered"
+          value="23"
+          change="All BAY areas"
+          icon={Globe}
+          trend="up"
+        />
+        <KPICard
+          title="Active Programs"
+          value="1,167"
+          change="+3.2% this month"
+          icon={TrendingUp}
+          trend="up"
+        />
+      </div>
+
+      {/* Main Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* BAY Humanitarian Need Trends - spans 2 columns */}
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="BAY States Humanitarian Need"
+            description="Total population in need and displaced persons over time"
+          >
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={bayHumanitarianData}>
+                <defs>
+                  <linearGradient id="colorCrises" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f4b942" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#f4b942" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                <XAxis dataKey="month" stroke="#a0a0a0" />
+                <YAxis stroke="#a0a0a0" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="need"
+                  stroke="#f4b942"
+                  fillOpacity={1}
+                  fill="url(#colorCrises)"
+                  name="People in Need (M)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+
+        {/* BAY States Distribution */}
+        <ChartCard
+          title="BAY States Distribution"
+          description="Humanitarian need by state"
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={bayStatesDistribution}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {bayStatesDistribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="mt-4 space-y-2">
+            {bayStatesDistribution.map((state, idx) => (
+              <div key={idx} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: state.fill }}
+                  />
+                  <span className="text-muted-foreground">{state.name}</span>
+                </div>
+                <span className="font-bold">{state.value}M</span>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+      </div>
+
+      {/* BAY Youth Programs & Need Severity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* BAY Youth Program Enrollment */}
+        <ChartCard
+          title="BAY Youth Program Enrollment"
+          description="Participants and completion rates"
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={youthProgramsData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+              <XAxis dataKey="month" stroke="#a0a0a0" />
+              <YAxis stroke="#a0a0a0" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+              />
+              <Legend />
+              <Bar dataKey="enrolled" stackId="a" fill="#f4b942" name="Enrolled" />
+              <Bar dataKey="completed" stackId="a" fill="#00d4ff" name="Completed" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        {/* BAY Severity Trend */}
+        <ChartCard
+          title="Humanitarian Severity Index"
+          description="Weighted measure of need across BAY states"
+        >
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={bayHumanitarianData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+              <XAxis dataKey="month" stroke="#a0a0a0" />
+              <YAxis stroke="#a0a0a0" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+              />
+              <Line
+                type="monotone"
+                dataKey="severity"
+                stroke="#627eea"
+                strokeWidth={3}
+                dot={{ fill: '#627eea', r: 5 }}
+                activeDot={{ r: 7 }}
+                name="Severity Score"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      {/* Quick Access Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link href="/dashboard/countries">
+          <Card className="bg-card border-border hover:border-accent/50 transition cursor-pointer group h-full">
+            <div className="p-6 space-y-4">
+              <div className="h-10 w-10 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition">
+                <Globe className="h-10 w-10 p-2 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Country Insights</h3>
+                <p className="text-sm text-muted-foreground">Deep-dive into country-specific data</p>
+              </div>
+              <div className="pt-2">
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition" />
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/comparison">
+          <Card className="bg-card border-border hover:border-accent/50 transition cursor-pointer group h-full">
+            <div className="p-6 space-y-4">
+              <div className="h-10 w-10 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition">
+                <TrendingUp className="h-10 w-10 p-2 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Compare Data</h3>
+                <p className="text-sm text-muted-foreground">Side-by-side analysis of regions</p>
+              </div>
+              <div className="pt-2">
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition" />
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/analysis">
+          <Card className="bg-card border-border hover:border-accent/50 transition cursor-pointer group h-full">
+            <div className="p-6 space-y-4">
+              <div className="h-10 w-10 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition">
+                <Users className="h-10 w-10 p-2 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">AI Analysis</h3>
+                <p className="text-sm text-muted-foreground">Machine learning insights</p>
+              </div>
+              <div className="pt-2">
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition" />
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/policy-briefs">
+          <Card className="bg-card border-border hover:border-accent/50 transition cursor-pointer group h-full">
+            <div className="p-6 space-y-4">
+              <div className="h-10 w-10 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition">
+                <AlertTriangle className="h-10 w-10 p-2 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1">Policy Briefs</h3>
+                <p className="text-sm text-muted-foreground">Automated policy recommendations</p>
+              </div>
+              <div className="pt-2">
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition" />
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </div>
+    </div>
+  )
+}
