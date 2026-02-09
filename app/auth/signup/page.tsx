@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Globe, ArrowRight, Shield } from 'lucide-react'
+import { Globe, ArrowRight, Shield, Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 
@@ -25,6 +25,8 @@ export default function SignUp() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Redirect if already logged in
   useEffect(() => {
@@ -251,16 +253,25 @@ export default function SignUp() {
                   <Label htmlFor="password" className="text-white/80 text-sm font-medium">
                     Password
                   </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="h-11 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-white/30 focus:border-amber-500/50 focus:ring-amber-500/20 rounded-xl transition-all"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="h-11 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-white/30 focus:border-amber-500/50 focus:ring-amber-500/20 rounded-xl transition-all pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Confirm Password field */}
@@ -268,16 +279,25 @@ export default function SignUp() {
                   <Label htmlFor="confirmPassword" className="text-white/80 text-sm font-medium">
                     Confirm
                   </Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="h-11 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-white/30 focus:border-amber-500/50 focus:ring-amber-500/20 rounded-xl transition-all"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="h-11 bg-white/[0.05] border-white/[0.1] text-white placeholder:text-white/30 focus:border-amber-500/50 focus:ring-amber-500/20 rounded-xl transition-all pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
