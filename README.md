@@ -1,30 +1,49 @@
-# Data intelligence platform
+# HUMAID - BAY States Data Intelligence Platform
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
-
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/imammagnus40-8846s-projects/v0-data-intelligence-platform)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/kska73ldlAk)
+A real-time humanitarian and youth data intelligence platform focused on the BAY States (Borno, Adamawa, Yobe) in Northeast Nigeria.
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+HUMAID provides comprehensive data insights for policymakers, researchers, and humanitarian organizations working in crisis-affected areas. The platform tracks humanitarian needs, displaced persons, youth programs, and development indicators across all 23 LGAs in the BAY region.
 
-## Deployment
+## Features
 
-Your project is live at:
+- **Real-Time Dashboard** - Live humanitarian metrics and KPIs
+- **BAY States Coverage** - Comprehensive data for Borno, Adamawa, and Yobe
+- **AI Analysis** - Crisis forecasting, pattern detection, anomaly alerts
+- **Policy Briefs** - AI-generated policy recommendations
+- **State Comparison** - Side-by-side regional analysis
 
-**[https://vercel.com/imammagnus40-8846s-projects/v0-data-intelligence-platform](https://vercel.com/imammagnus40-8846s-projects/v0-data-intelligence-platform)**
+## Tech Stack
 
-## Build your app
+- Next.js 16 (App Router)
+- React 19 + TypeScript
+- Tailwind CSS 4
+- Shadcn/UI Components
+- Recharts
 
-Continue building your app on:
+## Getting Started
 
-**[https://v0.app/chat/kska73ldlAk](https://v0.app/chat/kska73ldlAk)**
+```bash
+# Install dependencies
+pnpm install
 
-## How It Works
+# Run development server
+pnpm dev
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+# Build for production
+pnpm build
+```
+
+## Project Structure
+
+```
+├── app/              # Next.js App Router pages
+├── components/       # Reusable UI components
+├── lib/              # Data and utilities
+└── public/           # Static assets
+```
+
+## License
+
+MIT

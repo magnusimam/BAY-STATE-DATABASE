@@ -22,21 +22,21 @@ export const BAY_LIVE_INDICATORS: TickerIndicator[] = [
     label: 'Displaced Persons',
     value: '3.48M',
     change: '+0.9%',
-    color: '#00d4ff',
+    color: '#6ec6e8',
     type: 'metric',
   },
   {
     label: 'Active Programs',
     value: '1,167',
     change: '+3.2%',
-    color: '#627eea',
+    color: '#8b5cf6',
     type: 'metric',
   },
   {
     label: 'LGAs Covered',
     value: '23',
     change: 'all areas',
-    color: '#00f0ff',
+    color: '#22c55e',
     type: 'status',
   },
 ]
@@ -104,7 +104,7 @@ export function generateLiveUpdate(indicator: TickerIndicator): TickerIndicator 
 
 // Get severity color based on score
 export function getSeverityColor(score: number): string {
-  if (score >= 90) return '#ff4d4d' // Red
+  if (score >= 90) return '#dc2626' // Critical Red
   if (score >= 80) return '#f4b942' // Orange
   if (score >= 70) return '#ffd700' // Yellow
   return '#4caf50' // Green

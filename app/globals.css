@@ -4,74 +4,116 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.85 0.15 38);
-  --accent-foreground: oklch(0.145 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.85 0.15 38);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  /* Light mode with humanitarian warmth */
+  --background: #fafafa;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
+  --primary-foreground: #fafafa;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  
+  /* Brand accent - Amber Gold */
+  --accent: #d97706;
+  --accent-foreground: #ffffff;
+  
+  /* Semantic colors - light mode variants */
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #ca8a04;
+  --warning-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #94a3b8;
+  
+  /* Chart palette - accessible for light backgrounds */
+  --chart-1: #d97706;
+  --chart-2: #0891b2;
+  --chart-3: #16a34a;
+  --chart-4: #7c3aed;
+  --chart-5: #ea580c;
+  
+  /* Severity scale */
+  --severity-critical: #dc2626;
+  --severity-severe: #ea580c;
+  --severity-moderate: #d97706;
+  --severity-low: #16a34a;
+  
   --radius: 0.5rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.85 0.15 38);
-  --sidebar-accent-foreground: oklch(0.145 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #d97706;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d97706;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #94a3b8;
 }
 
 .dark {
-  --background: #0f0f0f;
-  --foreground: #f5f5f5;
-  --card: #1a1a1a;
-  --card-foreground: #f5f5f5;
-  --popover: #1a1a1a;
-  --popover-foreground: #f5f5f5;
-  --primary: #f5f5f5;
-  --primary-foreground: #0f0f0f;
-  --secondary: #2a2a2a;
-  --secondary-foreground: #f5f5f5;
-  --muted: #3a3a3a;
-  --muted-foreground: #a0a0a0;
+  /* Warmer dark background - humanitarian feel */
+  --background: #0f1214;
+  --foreground: #f1f5f9;
+  --card: #1a1e23;
+  --card-foreground: #f1f5f9;
+  --popover: #1a1e23;
+  --popover-foreground: #f1f5f9;
+  --primary: #f1f5f9;
+  --primary-foreground: #0f1214;
+  --secondary: #252b33;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  
+  /* Brand accent - Amber Gold (hope & action) */
   --accent: #f4b942;
-  --accent-foreground: #0f0f0f;
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: #2a2a2a;
-  --input: #2a2a2a;
-  --ring: #3a3a3a;
-  --chart-1: #f4b942;
-  --chart-2: #00d4ff;
-  --chart-3: #ff4d4d;
-  --chart-4: #627eea;
-  --chart-5: #00f0ff;
-  --sidebar: #1a1a1a;
-  --sidebar-foreground: #f5f5f5;
+  --accent-foreground: #0f1214;
+  
+  /* Semantic colors */
+  --success: #22c55e;
+  --success-foreground: #0f1214;
+  --warning: #fbbf24;
+  --warning-foreground: #0f1214;
+  --destructive: #ef4444;
+  --destructive-foreground: #fef2f2;
+  --info: #3b82f6;
+  --info-foreground: #f1f5f9;
+  
+  --border: #2d3748;
+  --input: #2d3748;
+  --ring: #475569;
+  
+  /* Humanitarian chart palette - distinct & accessible */
+  --chart-1: #f4b942;  /* Amber - primary metric */
+  --chart-2: #6ec6e8;  /* Soft cyan - secondary (eye-friendly) */
+  --chart-3: #22c55e;  /* Green - positive trends */
+  --chart-4: #8b5cf6;  /* Purple - comparison data */
+  --chart-5: #f97316;  /* Orange - alerts/attention */
+  
+  /* Severity scale for humanitarian metrics */
+  --severity-critical: #dc2626;  /* 90-100 */
+  --severity-severe: #ea580c;    /* 70-89 */
+  --severity-moderate: #f4b942;  /* 50-69 */
+  --severity-low: #22c55e;       /* 0-49 */
+  
+  --sidebar: #1a1e23;
+  --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #f4b942;
-  --sidebar-primary-foreground: #0f0f0f;
+  --sidebar-primary-foreground: #0f1214;
   --sidebar-accent: #f4b942;
-  --sidebar-accent-foreground: #0f0f0f;
-  --sidebar-border: #2a2a2a;
-  --sidebar-ring: #3a3a3a;
+  --sidebar-accent-foreground: #0f1214;
+  --sidebar-border: #2d3748;
+  --sidebar-ring: #475569;
 }
 
 @theme inline {
@@ -91,8 +133,23 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  
+  /* Semantic colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  
+  /* Severity scale for humanitarian metrics */
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-severe: var(--severity-severe);
+  --color-severity-moderate: var(--severity-moderate);
+  --color-severity-low: var(--severity-low);
+  
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -121,5 +178,422 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ===========================
+   ACCESSIBILITY IMPROVEMENTS 
+   =========================== */
+
+/* Focus indicators for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  transition: outline-offset 0.15s ease;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip link for screen readers */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ===========================
+   ANIMATION KEYFRAMES 
+   =========================== */
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+  50% { transform: translateY(-20px) translateX(10px); opacity: 0.5; }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--accent), 0 0 10px transparent; }
+  50% { box-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Alias for inline animation style usage */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Camel case alias for inline style usage */
+@keyframes scaleIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Animation utility classes */
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-draw-line {
+  stroke-dasharray: 1000;
+  animation: draw-line 1.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 10s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* ===========================
+   CARD HOVER EFFECTS 
+   =========================== */
+
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border);
+  border-color: var(--accent);
+}
+
+.card-hover:active {
+  transform: translateY(-2px);
+}
+
+/* Mobile touch-optimized card effects */
+@media (hover: none) and (pointer: coarse) {
+  .card-hover:active,
+  .card-glow:active {
+    transform: scale(0.98);
+    border-color: var(--accent);
+    box-shadow: 0 0 20px -8px var(--accent);
+  }
+  
+  .card-glow:active::before {
+    opacity: 0.4;
+  }
+}
+
+/* Glow effect on hover */
+.card-glow {
+  position: relative;
+  overflow: visible;
+}
+
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent) 0%, transparent 50%, var(--accent) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(8px);
+}
+
+/* Show subtle glow on mobile by default */
+@media (hover: none) and (pointer: coarse) {
+  .card-glow::before {
+    opacity: 0.15;
+  }
+}
+
+.card-glow:hover::before {
+  opacity: 0.3;
+}
+
+/* ===========================
+   MOBILE VISUAL ENHANCEMENTS
+   =========================== */
+
+/* Subtle shimmer effect for accent elements on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .mobile-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    animation: shimmer 3s infinite;
+  }
+}
+
+/* Badge glow effect for mobile */
+.badge-glow {
+  box-shadow: 0 0 10px -2px var(--accent);
+}
+
+/* Enhanced borders for mobile cards */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-card-enhanced {
+    border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent) 20%);
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* ===========================
+   CHART ANIMATIONS 
+   =========================== */
+
+.recharts-wrapper {
+  animation: fade-in 0.6s ease-out;
+}
+
+.recharts-bar-rectangle {
+  animation: slide-up 0.6s ease-out backwards;
+}
+
+.recharts-area-area {
+  animation: fade-in 1s ease-out;
+}
+
+.recharts-line-curve {
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: draw-line 2s ease-out forwards;
+}
+
+/* ===========================
+   PAGE TRANSITIONS 
+   =========================== */
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ===========================
+   MOBILE RESPONSIVE UTILITIES 
+   =========================== */
+
+/* Hide scrollbar for horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-friendly tap targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Safe area padding for notched devices */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile-optimized text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Smooth momentum scrolling on mobile */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent content shift on mobile keyboards */
+@supports (height: 100dvh) {
+  .min-h-screen-dynamic {
+    min-height: 100dvh;
+  }
+  
+  .h-screen-dynamic {
+    height: 100dvh;
+  }
+}
+
+/* Mobile card press effect */
+.mobile-press {
+  transition: transform 0.1s ease;
+}
+
+.mobile-press:active {
+  transform: scale(0.98);
+}
+
+/* Responsive container with mobile padding */
+.container-mobile {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-mobile {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-mobile {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }

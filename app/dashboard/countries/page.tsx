@@ -137,48 +137,48 @@ export default function Countries() {
   }, [search])
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-2 sm:gap-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2">BAY States & LGAs</h1>
-          <p className="text-muted-foreground">Explore humanitarian data by state and local government area</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">BAY States & LGAs</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Explore humanitarian data by state and local government area</p>
         </div>
       </div>
 
       {/* Search and filters */}
       <div className="relative">
-        <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+        <Search className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
         <Input
           placeholder="Search states or LGAs..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 bg-secondary border-border focus:border-accent"
+          className="pl-9 sm:pl-10 bg-secondary border-border focus:border-accent h-9 sm:h-10 text-sm"
         />
       </div>
 
       {/* Tabs for States and LGAs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 bg-secondary/50 border-border">
-          <TabsTrigger value="states" className="data-[state=active]:bg-card">States</TabsTrigger>
-          <TabsTrigger value="lgas" className="data-[state=active]:bg-card">LGAs</TabsTrigger>
+        <TabsList className="grid w-full max-w-xs sm:max-w-md grid-cols-2 bg-secondary/50 border-border h-9 sm:h-10">
+          <TabsTrigger value="states" className="data-[state=active]:bg-card text-xs sm:text-sm">States</TabsTrigger>
+          <TabsTrigger value="lgas" className="data-[state=active]:bg-card text-xs sm:text-sm">LGAs</TabsTrigger>
         </TabsList>
 
         {/* States Tab */}
-        <TabsContent value="states" className="space-y-6">
+        <TabsContent value="states" className="space-y-4 sm:space-y-6">
           {/* Top states chart */}
-          <Card className="bg-card border-border p-6">
-            <div className="mb-6">
-              <h2 className="font-bold text-lg">BAY States by Humanitarian Need</h2>
-              <p className="text-sm text-muted-foreground mt-1">Millions of people affected</p>
+          <Card className="bg-card border-border p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="font-bold text-base sm:text-lg">BAY States by Humanitarian Need</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Millions of people affected</p>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
               <BarChart data={statesData.map(s => ({ code: s.code, name: s.name, need: s.humanitarianNeed }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                <XAxis dataKey="code" stroke="#a0a0a0" />
-                <YAxis stroke="#a0a0a0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis dataKey="code" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+                  contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }}
                 />
                 <Bar dataKey="need" fill="#f4b942" radius={[8, 8, 0, 0]} />
               </BarChart>
@@ -186,14 +186,14 @@ export default function Countries() {
           </Card>
 
           {/* States grid */}
-          <div className="space-y-4">
-            <h2 className="font-bold text-lg">All States ({filteredStates.length})</h2>
+          <div className="space-y-3 sm:space-y-4">
+            <h2 className="font-bold text-base sm:text-lg">All States ({filteredStates.length})</h2>
             {filteredStates.length === 0 ? (
-              <Card className="bg-card border-border p-12 text-center">
-                <p className="text-muted-foreground">No states found matching your search.</p>
+              <Card className="bg-card border-border p-8 sm:p-12 text-center">
+                <p className="text-sm sm:text-base text-muted-foreground">No states found matching your search.</p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                 {filteredStates.map((state) => (
                   <StateCard key={state.code} state={state} />
                 ))}
@@ -203,34 +203,34 @@ export default function Countries() {
         </TabsContent>
 
         {/* LGAs Tab */}
-        <TabsContent value="lgas" className="space-y-6">
+        <TabsContent value="lgas" className="space-y-4 sm:space-y-6">
           {/* Top LGAs by need */}
-          <Card className="bg-card border-border p-6">
-            <div className="mb-6">
-              <h2 className="font-bold text-lg">Top 5 LGAs by Humanitarian Need</h2>
-              <p className="text-sm text-muted-foreground mt-1">Percentage of population affected</p>
+          <Card className="bg-card border-border p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="font-bold text-base sm:text-lg">Top 5 LGAs by Humanitarian Need</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Percentage of population affected</p>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
               <BarChart data={topLGAs.map(lga => ({ name: lga.name, need: lga.humanitarianNeed }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                <XAxis dataKey="name" stroke="#a0a0a0" angle={-45} textAnchor="end" height={100} />
-                <YAxis stroke="#a0a0a0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis dataKey="name" stroke="#94a3b8" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 10 }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+                  contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }}
                 />
-                <Bar dataKey="need" fill="#00d4ff" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="need" fill="#f4b942" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
 
           {/* All LGAs grid */}
-          <div className="space-y-4">
-            <h2 className="font-bold text-lg">All LGAs ({getAllLGAs().length})</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-3 sm:space-y-4">
+            <h2 className="font-bold text-base sm:text-lg">All LGAs ({getAllLGAs().length})</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {statesData.map(state => (
-                <div key={state.code} className="space-y-3">
-                  <h3 className="font-bold text-sm text-muted-foreground uppercase">{state.name} State</h3>
-                  <div className="space-y-3">
+                <div key={state.code} className="space-y-2 sm:space-y-3">
+                  <h3 className="font-bold text-xs sm:text-sm text-muted-foreground uppercase">{state.name} State</h3>
+                  <div className="space-y-2 sm:space-y-3">
                     {Object.values(state.lgas).map((lga) => (
                       <LGACard key={lga.code} lga={lga} state={state.name} />
                     ))}

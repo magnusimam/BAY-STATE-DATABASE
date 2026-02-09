@@ -234,10 +234,10 @@ export default function CountryDetail() {
                 <stop offset="95%" stopColor="#f4b942" stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="month" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="month" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Legend />
             <Area
               type="monotone"
@@ -257,10 +257,10 @@ export default function CountryDetail() {
           <h2 className="font-bold text-lg mb-6">Regional Breakdown</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={country.regionalBreakdown} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis type="number" stroke="#a0a0a0" />
-              <YAxis dataKey="region" type="category" stroke="#a0a0a0" />
-              <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+              <XAxis type="number" stroke="#94a3b8" />
+              <YAxis dataKey="region" type="category" stroke="#94a3b8" />
+              <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
               <Bar dataKey="need" fill="#f4b942" name="Need (M)" />
             </BarChart>
           </ResponsiveContainer>
@@ -296,16 +296,16 @@ export default function CountryDetail() {
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={country.timeline}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="month" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="month" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Line
               type="monotone"
               dataKey="programs"
-              stroke="#00d4ff"
+              stroke="#6ec6e8"
               strokeWidth={3}
-              dot={{ fill: '#00d4ff', r: 5 }}
+              dot={{ fill: '#6ec6e8', r: 5 }}
               activeDot={{ r: 7 }}
               name="Active Programs"
             />

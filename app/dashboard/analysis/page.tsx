@@ -131,12 +131,12 @@ function AnalysisCard({
       {type === 'crisis-forecast' && (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="week" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="week" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Line type="monotone" dataKey="predicted" stroke="#f4b942" strokeWidth={2} name="Predicted" />
-            <Line type="monotone" dataKey="actual" stroke="#00d4ff" strokeWidth={2} name="Actual" />
+            <Line type="monotone" dataKey="actual" stroke="#6ec6e8" strokeWidth={2} name="Actual" />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -144,10 +144,10 @@ function AnalysisCard({
       {type === 'pattern-detection' && (
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="factor" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="factor" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Bar dataKey="score" fill="#f4b942" name="Correlation Score" />
           </BarChart>
         </ResponsiveContainer>
@@ -156,12 +156,12 @@ function AnalysisCard({
       {type === 'anomaly-detection' && (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="day" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
-            <Line type="monotone" dataKey="normal" stroke="#627eea" strokeWidth={2} name="Normal" />
-            <Line type="monotone" dataKey="anomaly" stroke="#ff4d4d" strokeWidth={2} name="Anomaly" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="day" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
+            <Line type="monotone" dataKey="normal" stroke="#8b5cf6" strokeWidth={2} name="Normal" />
+            <Line type="monotone" dataKey="anomaly" stroke="#f97316" strokeWidth={2} name="Anomaly" />
           </LineChart>
         </ResponsiveContainer>
       )}

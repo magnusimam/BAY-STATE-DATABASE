@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { FadeIn, Sparkline, AnimatedCounter, ProgressRing } from '@/components/ui/animations'
 import {
   AreaChart,
   Area,
@@ -46,8 +47,8 @@ const bayHumanitarianData = [
 
 const bayStatesDistribution = [
   { name: 'Borno', value: 3.32, fill: '#f4b942' },
-  { name: 'Adamawa', value: 2.15, fill: '#00d4ff' },
-  { name: 'Yobe', value: 1.78, fill: '#627eea' },
+  { name: 'Adamawa', value: 2.15, fill: '#6ec6e8' },
+  { name: 'Yobe', value: 1.78, fill: '#8b5cf6' },
 ]
 
 const youthProgramsData = [
@@ -94,25 +95,39 @@ function KPICard({
   change,
   icon: Icon,
   trend = 'up',
+  sparklineData,
+  sparklineColor = '#f4b942',
 }: {
   title: string
   value: string
   change: string
   icon: React.ComponentType<{ className?: string }>
   trend?: 'up' | 'down'
+  sparklineData?: number[]
+  sparklineColor?: string
 }) {
   return (
-    <Card className="bg-card border-border p-6">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground mb-1">{title}</p>
-          <h3 className="text-3xl font-bold text-foreground">{value}</h3>
-          <div className={`mt-2 text-sm font-medium ${trend === 'up' ? 'text-accent' : 'text-destructive'}`}>
+    <Card hover className="bg-card border-border p-4 sm:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">{title}</p>
+          <h3 className="text-2xl sm:text-3xl font-bold text-foreground">{value}</h3>
+          <div className={`mt-1.5 sm:mt-2 text-xs sm:text-sm font-medium ${trend === 'up' ? 'text-success' : 'text-destructive'}`}>
             {trend === 'up' ? '↑' : '↓'} {change}
           </div>
         </div>
-        <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-          <Icon className="h-6 w-6 text-accent" />
+        <div className="flex flex-col items-end gap-2 sm:gap-3">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+          </div>
+          {sparklineData && (
+            <Sparkline 
+              data={sparklineData} 
+              color={sparklineColor} 
+              width={50} 
+              height={18} 
+            />
+          )}
         </div>
       </div>
     </Card>
@@ -130,10 +145,10 @@ function ChartCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="bg-card border-border p-6">
-      <div className="mb-6">
-        <h3 className="font-bold text-lg text-foreground">{title}</h3>
-        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+    <Card className="bg-card border-border p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="font-bold text-base sm:text-lg text-foreground">{title}</h3>
+        {description && <p className="text-xs sm:text-sm text-muted-foreground mt-1">{description}</p>}
       </div>
       {children}
     </Card>
@@ -142,70 +157,86 @@ function ChartCard({
 
 export default function Dashboard() {
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
       {/* Page header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Real-time humanitarian and youth data insights</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Real-time humanitarian and youth data insights</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
-            <Filter className="h-4 w-4" />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="border-border gap-1.5 sm:gap-2 bg-transparent text-xs sm:text-sm h-8 sm:h-9">
+            <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Filter
           </Button>
-          <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
-            <RefreshCw className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="border-border gap-1.5 sm:gap-2 bg-transparent text-xs sm:text-sm h-8 sm:h-9">
+            <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Refresh
           </Button>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
-            <Download className="h-4 w-4" />
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9">
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Export
           </Button>
         </div>
       </div>
 
       {/* BAY States KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
-          title="People in Need"
-          value="7.25M"
-          change="+1.8% this month"
-          icon={Users}
-          trend="up"
-        />
-        <KPICard
-          title="Displaced Persons"
-          value="3.48M"
-          change="+0.9% this month"
-          icon={AlertTriangle}
-          trend="up"
-        />
-        <KPICard
-          title="LGAs Covered"
-          value="23"
-          change="All BAY areas"
-          icon={Globe}
-          trend="up"
-        />
-        <KPICard
-          title="Active Programs"
-          value="1,167"
-          change="+3.2% this month"
-          icon={TrendingUp}
-          trend="up"
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <FadeIn delay={0} direction="up">
+          <KPICard
+            title="People in Need"
+            value="7.25M"
+            change="+1.8% this month"
+            icon={Users}
+            trend="up"
+            sparklineData={[6.85, 6.92, 7.05, 7.12, 7.19, 7.25]}
+            sparklineColor="#f4b942"
+          />
+        </FadeIn>
+        <FadeIn delay={100} direction="up">
+          <KPICard
+            title="Displaced Persons"
+            value="3.48M"
+            change="+0.9% this month"
+            icon={AlertTriangle}
+            trend="up"
+            sparklineData={[3.24, 3.31, 3.39, 3.45, 3.46, 3.48]}
+            sparklineColor="#6ec6e8"
+          />
+        </FadeIn>
+        <FadeIn delay={200} direction="up">
+          <KPICard
+            title="LGAs Covered"
+            value="23"
+            change="All BAY areas"
+            icon={Globe}
+            trend="up"
+            sparklineData={[18, 19, 20, 21, 22, 23]}
+            sparklineColor="#8b5cf6"
+          />
+        </FadeIn>
+        <FadeIn delay={300} direction="up">
+          <KPICard
+            title="Active Programs"
+            value="1,167"
+            change="+3.2% this month"
+            icon={TrendingUp}
+            trend="up"
+            sparklineData={[980, 1020, 1050, 1090, 1120, 1167]}
+            sparklineColor="#22c55e"
+          />
+        </FadeIn>
       </div>
 
       {/* Main Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* BAY Humanitarian Need Trends - spans 2 columns */}
         <div className="lg:col-span-2">
           <ChartCard
             title="BAY States Humanitarian Need"
             description="Total population in need and displaced persons over time"
           >
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
               <AreaChart data={bayHumanitarianData}>
                 <defs>
                   <linearGradient id="colorCrises" x1="0" y1="0" x2="0" y2="1">
@@ -213,11 +244,11 @@ export default function Dashboard() {
                     <stop offset="95%" stopColor="#f4b942" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                <XAxis dataKey="month" stroke="#a0a0a0" />
-                <YAxis stroke="#a0a0a0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis dataKey="month" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+                  contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }}
                 />
                 <Area
                   type="monotone"
@@ -237,14 +268,14 @@ export default function Dashboard() {
           title="BAY States Distribution"
           description="Humanitarian need by state"
         >
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
             <PieChart>
               <Pie
                 data={bayStatesDistribution}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={100}
+                innerRadius={40}
+                outerRadius={70}
                 paddingAngle={5}
                 dataKey="value"
               >
@@ -252,15 +283,15 @@ export default function Dashboard() {
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+              <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
             {bayStatesDistribution.map((state, idx) => (
-              <div key={idx} className="flex items-center justify-between text-sm">
+              <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
                 <div className="flex items-center gap-2">
                   <div
-                    className="h-2 w-2 rounded-full"
+                    className="h-2 w-2 rounded-full flex-shrink-0"
                     style={{ backgroundColor: state.fill }}
                   />
                   <span className="text-muted-foreground">{state.name}</span>
@@ -281,15 +312,15 @@ export default function Dashboard() {
         >
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={youthProgramsData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="month" stroke="#a0a0a0" />
-              <YAxis stroke="#a0a0a0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+              <XAxis dataKey="month" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+                contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }}
               />
               <Legend />
               <Bar dataKey="enrolled" stackId="a" fill="#f4b942" name="Enrolled" />
-              <Bar dataKey="completed" stackId="a" fill="#00d4ff" name="Completed" />
+              <Bar dataKey="completed" stackId="a" fill="#6ec6e8" name="Completed" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -301,18 +332,18 @@ export default function Dashboard() {
         >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={bayHumanitarianData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="month" stroke="#a0a0a0" />
-              <YAxis stroke="#a0a0a0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+              <XAxis dataKey="month" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }}
+                contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }}
               />
               <Line
                 type="monotone"
                 dataKey="severity"
-                stroke="#627eea"
+                stroke="#8b5cf6"
                 strokeWidth={3}
-                dot={{ fill: '#627eea', r: 5 }}
+                dot={{ fill: '#8b5cf6', r: 5 }}
                 activeDot={{ r: 7 }}
                 name="Severity Score"
               />

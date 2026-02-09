@@ -103,8 +103,8 @@ const comparisonMetrics = [
 // Color mapping for BAY states
 const colorMap: Record<string, string> = {
   BN: '#f4b942',
-  AD: '#00d4ff',
-  YB: '#627eea',
+  AD: '#6ec6e8',
+  YB: '#8b5cf6',
 }
 
 // Declare countriesData variable
@@ -272,10 +272,10 @@ export default function Comparison() {
 
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={barData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="code" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="code" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Bar dataKey="value" radius={[8, 8, 0, 0]}>
               {barData.map((entry, index) => (
                 <Bar key={`bar-${index}`} dataKey="value" fill={entry.fill} />
@@ -290,9 +290,9 @@ export default function Comparison() {
         <h3 className="font-bold mb-6">BAY States Multi-Dimensional Analysis</h3>
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart data={radarData}>
-            <PolarGrid stroke="#2a2a2a" />
-            <PolarAngleAxis dataKey="metric" stroke="#a0a0a0" />
-            <PolarRadiusAxis stroke="#a0a0a0" />
+            <PolarGrid stroke="#2d3748" />
+            <PolarAngleAxis dataKey="metric" stroke="#94a3b8" />
+            <PolarRadiusAxis stroke="#94a3b8" />
             {selected.map(code => (
               <Radar
                 key={code}
@@ -303,7 +303,7 @@ export default function Comparison() {
                 fillOpacity={0.25}
               />
             ))}
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Legend />
           </RadarChart>
         </ResponsiveContainer>
@@ -314,10 +314,10 @@ export default function Comparison() {
         <h3 className="font-bold mb-6">BAY States Humanitarian Need Trend</h3>
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={timelineData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-            <XAxis dataKey="month" stroke="#a0a0a0" />
-            <YAxis stroke="#a0a0a0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+            <XAxis dataKey="month" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
             <Legend />
             {selected.map(code => (
               <Line
