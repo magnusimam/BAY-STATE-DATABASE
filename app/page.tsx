@@ -173,7 +173,7 @@ function HeroSection() {
                 Real-Time Intelligence
               </Badge>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-pretty">
-                BAY States Intelligence
+                BAY States Intelligence on Youth Peace and Security
               </h1>
               <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md">
                 Real-time humanitarian and youth data intelligence for Borno, Adamawa, and Yobe states. Access comprehensive insights driving policy and impact.
