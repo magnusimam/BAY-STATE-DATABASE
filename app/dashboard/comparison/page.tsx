@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,6 +30,7 @@ import {
 } from 'recharts'
 import { Plus, X, Download } from 'lucide-react'
 import { bayStates, type BAYState } from '@/lib/bay-data'
+import type { BornoData } from '@/app/api/sheets/borno/route'
 
 // BAY States data with timeline
 const statesData: Record<string, any> = {
@@ -113,6 +114,27 @@ const countriesData = statesData;
 export default function Comparison() {
   const [selected, setSelected] = useState<string[]>(['BN', 'AD', 'YB'])
   const [compareMetric, setCompareMetric] = useState('need')
+  const [bornoData, setBornoData] = useState<BornoData | null>(null)
+
+  useEffect(() => {
+    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+  }, [])
+
+  const liveBornoUnemployment = useMemo(() => {
+    if (!bornoData) return statesData.BN.youthUnemployment
+    const rows = bornoData.rows.filter(r => r.indicator === 'Unemployment Rate')
+    if (!rows.length) return statesData.BN.youthUnemployment
+    return +(rows.reduce((s, r) => s + r.y2025, 0) / rows.length).toFixed(1)
+  }, [bornoData])
+
+  // Override Borno's youthUnemployment with live sheet value
+  const computedData = useMemo<Record<string, any>>(() => ({
+    ...statesData,
+    BN: { ...statesData.BN, youthUnemployment: liveBornoUnemployment },
+  }), [liveBornoUnemployment])
+
+  // Shadow module-level countriesData so all existing JSX uses live data
+  const countriesData = computedData
 
   const addState = (code: string) => {
     if (!selected.includes(code)) {

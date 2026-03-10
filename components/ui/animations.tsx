@@ -192,7 +192,8 @@ export function Sparkline({
     return `${x},${y}`
   }).join(' ')
 
-  const gradientId = `sparkline-gradient-${Math.random().toString(36).substr(2, 9)}`
+  // Stable ID derived from props so server and client render the same value
+  const gradientId = `sparkline-gradient-${color.replace('#', '')}-${data.length}-${width}-${height}`
 
   return (
     <svg

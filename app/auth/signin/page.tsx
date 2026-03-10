@@ -20,6 +20,9 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Debug: log loading states
+  console.log('Component render - authLoading:', authLoading, 'loading:', loading)
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
@@ -57,13 +60,17 @@ export default function SignIn() {
   }
 
   const handleGoogleSignIn = async () => {
+    console.log('Google Sign-In button clicked')
     setLoading(true)
     setError('')
     clearError()
     try {
+      console.log('Calling signInWithGoogle...')
       await signInWithGoogle()
+      console.log('Google Sign-In successful!')
       router.push('/dashboard')
     } catch (err: any) {
+      console.error('Google Sign-In error:', err)
       setError(err.message || 'Failed to sign in with Google.')
     } finally {
       setLoading(false)
@@ -250,7 +257,10 @@ export default function SignIn() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleGoogleSignIn}
+                onClick={() => {
+                  console.log('Button clicked! Loading state:', loading)
+                  handleGoogleSignIn()
+                }}
                 disabled={loading}
                 className="h-11 bg-white/[0.05] border-white/[0.1] text-white hover:bg-white/[0.1] hover:border-white/[0.2] rounded-xl transition-all"
               >

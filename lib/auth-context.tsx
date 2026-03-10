@@ -117,8 +117,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign in with Google
   const signInWithGoogle = async () => {
+    console.log('signInWithGoogle called, auth:', auth)
     if (!auth) {
       const message = 'Firebase is not configured. Please check your environment variables.'
+      console.error(message)
       setError(message)
       throw new Error(message)
     }
@@ -126,8 +128,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null)
       setLoading(true)
       const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
+      console.log('Opening Google popup...')
+      const result = await signInWithPopup(auth, provider)
+      console.log('Google sign-in result:', result)
     } catch (err: any) {
+      console.error('Google sign-in error:', err)
       const message = getErrorMessage(err.code)
       setError(message)
       throw new Error(message)
@@ -181,6 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     error,
+    isConfigured,
     signIn,
     signUp,
     signOut,

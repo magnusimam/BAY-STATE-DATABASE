@@ -35,6 +35,8 @@ import {
   Filter,
 } from 'lucide-react'
 
+import type { BornoData } from '@/app/api/sheets/borno/route'
+
 // BAY States data
 const bayHumanitarianData = [
   { month: 'Jan', need: 6.85, displaced: 3.24, severity: 82 },
@@ -156,6 +158,15 @@ function ChartCard({
 }
 
 export default function Dashboard() {
+  const [bornoData, setBornoData] = React.useState<BornoData | null>(null)
+
+  React.useEffect(() => {
+    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+  }, [])
+
+  const bornoLGAs = bornoData?.summary.totalLGAs ?? 27
+  const bornoDisplaced = bornoData ? (bornoData.summary.totalDisplacement2025 / 1_000_000).toFixed(2) + 'M' : '0.21M'
+
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
       {/* Page header */}
@@ -206,12 +217,12 @@ export default function Dashboard() {
         </FadeIn>
         <FadeIn delay={200} direction="up">
           <KPICard
-            title="LGAs Covered"
-            value="23"
-            change="All BAY areas"
+            title="Borno LGAs Tracked"
+            value={String(bornoLGAs)}
+            change="Live from Google Sheet"
             icon={Globe}
             trend="up"
-            sparklineData={[18, 19, 20, 21, 22, 23]}
+            sparklineData={[8, 12, 18, 22, 25, bornoLGAs]}
             sparklineColor="#8b5cf6"
           />
         </FadeIn>

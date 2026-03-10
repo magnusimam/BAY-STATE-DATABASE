@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,7 @@ import {
 import {
   Textarea,
 } from '@/components/ui/textarea'
+import type { BornoData } from '@/app/api/sheets/borno/route'
 import {
   Download,
   Share2,
@@ -309,8 +310,37 @@ function BriefCard({
 export default function PolicyBriefs() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState('all')
+  const [bornoData, setBornoData] = useState<BornoData | null>(null)
 
-  const filteredBriefs = policyBriefs.filter(brief => {
+  useEffect(() => {
+    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+  }, [])
+
+  const livePolicyBriefs = useMemo(() => {
+    if (!bornoData) return policyBriefs
+    const unemployRows = bornoData.rows.filter(r => r.indicator === 'Unemployment Rate')
+    const avgUnemployment = unemployRows.length
+      ? +(unemployRows.reduce((s, r) => s + r.y2025, 0) / unemployRows.length).toFixed(1)
+      : 48.2
+    const totalConflict = bornoData.summary.totalConflict2025.toLocaleString()
+    const totalDisplaced = bornoData.summary.totalDisplacement2025.toLocaleString()
+    return policyBriefs.map(b =>
+      b.id === 1
+        ? {
+            ...b,
+            keyPoints: [
+              `27 LGAs tracked across Conflict-Affected, Semi-Stable & Stable zones`,
+              `${totalDisplaced} displacement incidents recorded across conflict-affected LGAs (2025)`,
+              `${totalConflict} conflict incidents logged in 2025 tracker`,
+              `Average youth unemployment at ${avgUnemployment}% — live from Borno tracker`,
+            ],
+            summary: `Borno State's performance tracker (2022–2025) covers 27 LGAs across three conflict zones. In 2025, ${totalConflict} conflict incidents were recorded alongside ${totalDisplaced} displacement cases. Youth unemployment averages ${avgUnemployment}%, with the highest rates concentrated in Conflict-Affected LGAs. Immediate interventions targeting displacement response and economic resilience are critical.`,
+          }
+        : b
+    )
+  }, [bornoData])
+
+  const filteredBriefs = livePolicyBriefs.filter(brief => {
     if (selectedFilter === 'published') return brief.status === 'Published'
     if (selectedFilter === 'draft') return brief.status === 'Draft'
     return true

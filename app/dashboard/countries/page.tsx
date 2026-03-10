@@ -16,8 +16,9 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { Search, ArrowRight, TrendingUp, Users, AlertTriangle, MapPin } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { bayStates, getAllLGAs, getTopLGAsByNeed, type BAYState, type LGA } from '@/lib/bay-data'
+import type { BornoData, BornoRow } from '@/app/api/sheets/borno/route'
 
 // BAY States data
 const statesData = Object.values(bayStates)
@@ -121,20 +122,107 @@ function LGACard({
   )
 }
 
+// Borno real LGA card (sheet data)
+const ZONE_COLORS: Record<string, string> = {
+  'Conflict-Affected': '#ef4444',
+  'Stable/Urban': '#22c55e',
+  'Semi-Stable': '#f59e0b',
+}
+
+function BornoSheetLGACard({ rows }: { rows: BornoRow[] }) {
+  const lga = rows[0]?.lga ?? ''
+  const zone = rows[0]?.zone ?? 'Conflict-Affected'
+  const zoneColor = ZONE_COLORS[zone] ?? '#f4b942'
+
+  const getVal = (ind: string) => rows.find(r => r.indicator === ind)?.y2025 ?? 0
+  const literacy = getVal('Literacy Rate')
+  const unemployment = getVal('Unemployment Rate')
+  const displacement = getVal('Displacement')
+  const conflict = getVal('Conflict Incidents')
+
+  return (
+    <Card className="bg-card border-border hover:border-accent/50 transition">
+      <div className="p-4 space-y-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <h4 className="font-bold text-sm">{lga}</h4>
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full mt-1 inline-block"
+              style={{ backgroundColor: `${zoneColor}20`, color: zoneColor }}>
+              {zone}
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border text-xs">
+          <div>
+            <div className="text-muted-foreground mb-1">Literacy</div>
+            <div className="font-bold text-accent">{literacy.toFixed(1)}%</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground mb-1">Unemployment</div>
+            <div className="font-bold">{unemployment.toFixed(1)}%</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground mb-1">Displaced</div>
+            <div className="font-bold">{displacement.toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground mb-1">Conflict</div>
+            <div className="font-bold text-destructive">{conflict}</div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 export default function Countries() {
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState('states')
+  const [bornoData, setBornoData] = useState<BornoData | null>(null)
 
-  const topLGAs = getTopLGAsByNeed(5)
+  useEffect(() => {
+    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+  }, [])
+
+  const topLGAs = useMemo(() => {
+    if (bornoData) {
+      // Use live Borno LGA unemployment rates + AD/YB static values for a unified top-5 chart
+      const bnLGAs = bornoData.lgas.map(lgaName => {
+        const row = bornoData.rows.find(r => r.lga === lgaName && r.indicator === 'Unemployment Rate')
+        return { name: lgaName, need: row?.y2025 ?? 0 }
+      })
+      const adLGAs = Object.values(bayStates['AD'].lgas).map(l => ({ name: l.name, need: l.youthUnemployment }))
+      const ybLGAs = Object.values(bayStates['YB'].lgas).map(l => ({ name: l.name, need: l.youthUnemployment }))
+      return [...bnLGAs, ...adLGAs, ...ybLGAs].sort((a, b) => b.need - a.need).slice(0, 5)
+    }
+    return getTopLGAsByNeed(5).map(l => ({ name: l.name, need: l.humanitarianNeed }))
+  }, [bornoData])
+
+  // Group sheet rows by LGA name for Borno
+  const bornoLGAMap = useMemo(() => {
+    if (!bornoData) return new Map<string, BornoRow[]>()
+    const map = new Map<string, BornoRow[]>()
+    for (const row of bornoData.rows) {
+      const existing = map.get(row.lga) ?? []
+      existing.push(row)
+      map.set(row.lga, existing)
+    }
+    return map
+  }, [bornoData])
 
   const filteredStates = useMemo(() => {
-    if (!search) return statesData
-    return statesData.filter(
+    const base = statesData.map(s =>
+      s.code === 'BN' && bornoData
+        ? { ...s, lgaCount: bornoData.summary.totalLGAs }
+        : s
+    )
+    if (!search) return base
+    return base.filter(
       state =>
         state.name.toLowerCase().includes(search.toLowerCase()) ||
         state.code.toLowerCase().includes(search.toLowerCase())
     )
-  }, [search])
+  }, [search, bornoData])
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
@@ -207,11 +295,13 @@ export default function Countries() {
           {/* Top LGAs by need */}
           <Card className="bg-card border-border p-4 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="font-bold text-base sm:text-lg">Top 5 LGAs by Humanitarian Need</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Percentage of population affected</p>
+              <h2 className="font-bold text-base sm:text-lg">Top 5 LGAs by Youth Unemployment</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                {bornoData ? 'Live from Borno tracker · Adamawa & Yobe static' : 'Percentage of youth population'}
+              </p>
             </div>
             <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
-              <BarChart data={topLGAs.map(lga => ({ name: lga.name, need: lga.humanitarianNeed }))}>
+              <BarChart data={topLGAs}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
                 <XAxis dataKey="name" stroke="#94a3b8" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 10 }} />
                 <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
@@ -225,15 +315,33 @@ export default function Countries() {
 
           {/* All LGAs grid */}
           <div className="space-y-3 sm:space-y-4">
-            <h2 className="font-bold text-base sm:text-lg">All LGAs ({getAllLGAs().length})</h2>
+            <h2 className="font-bold text-base sm:text-lg">
+              All LGAs ({bornoData ? bornoData.lgas.length + 8 + 7 : getAllLGAs().length})
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {statesData.map(state => (
                 <div key={state.code} className="space-y-2 sm:space-y-3">
-                  <h3 className="font-bold text-xs sm:text-sm text-muted-foreground uppercase">{state.name} State</h3>
+                  <h3 className="font-bold text-xs sm:text-sm text-muted-foreground uppercase flex items-center gap-2">
+                    {state.name} State
+                    {state.code === 'BN' && bornoData && (
+                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent normal-case">
+                        {bornoData.lgas.length} LGAs · Live Data
+                      </span>
+                    )}
+                  </h3>
                   <div className="space-y-2 sm:space-y-3">
-                    {Object.values(state.lgas).map((lga) => (
-                      <LGACard key={lga.code} lga={lga} state={state.name} />
-                    ))}
+                    {state.code === 'BN' && bornoData ? (
+                      // Real Borno LGAs from Google Sheet
+                      bornoData.lgas.map(lgaName => {
+                        const rows = bornoLGAMap.get(lgaName) ?? []
+                        return <BornoSheetLGACard key={lgaName} rows={rows} />
+                      })
+                    ) : (
+                      // Placeholder LGAs for Adamawa and Yobe
+                      Object.values(state.lgas).map((lga) => (
+                        <LGACard key={lga.code} lga={lga} state={state.name} />
+                      ))
+                    )}
                   </div>
                 </div>
               ))}
