@@ -188,8 +188,8 @@ export default function SignUp() {
           {/* Glass card */}
           <div className="relative backdrop-blur-xl bg-white/[0.05] border border-white/[0.1] rounded-2xl p-4 sm:p-6 md:p-8 shadow-2xl">
             {/* Shine effect */}
-            <div className="absolute inset-0 rounded-2xl overflow-hidden">
-              <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-white/[0.15] to-transparent rotate-12 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+              <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-white/[0.15] to-transparent rotate-12" />
             </div>
 
             <form onSubmit={handleSignUp} className="space-y-3 sm:space-y-4 relative">

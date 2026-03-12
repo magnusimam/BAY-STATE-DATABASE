@@ -42,6 +42,7 @@ const statesData: Record<string, any> = {
     severity: 91,
     programs: 448,
     youthUnemployment: 48.2,
+    literacyRate: 28.0,
     foodInsecurity: 76,
     timeline: [
       { month: 'Jan', BN: 3.15, AD: 2.05, YB: 1.68 },
@@ -60,6 +61,7 @@ const statesData: Record<string, any> = {
     severity: 76,
     programs: 390,
     youthUnemployment: 37.5,
+    literacyRate: 42.0,
     foodInsecurity: 56,
     timeline: [
       { month: 'Jan', BN: 3.15, AD: 2.05, YB: 1.68 },
@@ -78,6 +80,7 @@ const statesData: Record<string, any> = {
     severity: 86,
     programs: 329,
     youthUnemployment: 44.8,
+    literacyRate: 35.0,
     foodInsecurity: 68,
     timeline: [
       { month: 'Jan', BN: 3.15, AD: 2.05, YB: 1.68 },
@@ -98,6 +101,7 @@ const comparisonMetrics = [
   { key: 'severity', label: 'Severity Index', type: 'number' },
   { key: 'programs', label: 'Active Programs', type: 'number' },
   { key: 'youthUnemployment', label: 'Youth Unemployment (%)', type: 'number' },
+  { key: 'literacyRate', label: 'Literacy Rate (%)', type: 'number' },
   { key: 'foodInsecurity', label: 'Food Insecurity (%)', type: 'number' },
 ]
 
@@ -120,18 +124,26 @@ export default function Comparison() {
     fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
   }, [])
 
-  const liveBornoUnemployment = useMemo(() => {
-    if (!bornoData) return statesData.BN.youthUnemployment
-    const rows = bornoData.rows.filter(r => r.indicator === 'Unemployment Rate')
-    if (!rows.length) return statesData.BN.youthUnemployment
-    return +(rows.reduce((s, r) => s + r.y2025, 0) / rows.length).toFixed(1)
+  // Derive live Borno metrics from sheet
+  const liveBornoMetrics = useMemo(() => {
+    if (!bornoData) return {}
+    const avg = (indicator: string) => {
+      const rows = bornoData.rows.filter(r => r.indicator === indicator)
+      if (!rows.length) return null
+      return +(rows.reduce((s, r) => s + r.y2025, 0) / rows.length).toFixed(1)
+    }
+    return {
+      youthUnemployment: avg('Unemployment Rate') ?? statesData.BN.youthUnemployment,
+      literacyRate: avg('Literacy Rate') ?? statesData.BN.literacyRate,
+      displacedPersons: +(bornoData.summary.totalDisplacement2025 / 1_000_000).toFixed(3),
+    }
   }, [bornoData])
 
-  // Override Borno's youthUnemployment with live sheet value
+  // Override Borno metrics with live sheet values
   const computedData = useMemo<Record<string, any>>(() => ({
     ...statesData,
-    BN: { ...statesData.BN, youthUnemployment: liveBornoUnemployment },
-  }), [liveBornoUnemployment])
+    BN: { ...statesData.BN, ...liveBornoMetrics },
+  }), [liveBornoMetrics])
 
   // Shadow module-level countriesData so all existing JSX uses live data
   const countriesData = computedData
