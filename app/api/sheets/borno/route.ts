@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-
-export const revalidate = 3600 // Cache for 1 hour
+import { readTrackerData, writeTrackerData } from '@/lib/firestore-tracker'
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1EPP646vv0zrcGAUIo5BKnclTWO8keDnxPUtDv-QsXh0/export?format=csv&gid=944871388'
+
+const FIVE_MIN = 5 * 60 * 1000
 
 // Indicators whose raw CSV values are stored as ×100 (e.g. "3400.00%" means 34%)
 const DIVIDE_BY_100_INDICATORS = new Set(['Youth % Population', 'Out-of-school Gap', 'Voter Card Gap'])
@@ -30,6 +31,7 @@ export interface BornoData {
     totalConflict2025: number
     totalLGAs: number
   }
+  lastSynced?: number
 }
 
 /** Parse a single CSV line respecting quoted fields */
@@ -108,36 +110,57 @@ function parseCSV(text: string): BornoData {
     rows.push({ lga, zone, indicator, y2022, y2023, y2024, y2025, trend: cols[8]?.trim() ?? '' })
   }
 
-  // Compute summary totals from Displacement and Conflict Incidents rows
   const displacementRows = rows.filter(r => r.indicator === 'Displacement')
   const conflictRows = rows.filter(r => r.indicator === 'Conflict Incidents')
-  const totalDisplacement2025 = displacementRows.reduce((sum, r) => sum + r.y2025, 0)
-  const totalConflict2025 = conflictRows.reduce((sum, r) => sum + r.y2025, 0)
 
   return {
     lgas: Array.from(lgaSet).sort(),
     indicators: Array.from(indicatorSet),
     rows,
     summary: {
-      totalDisplacement2025,
-      totalConflict2025,
+      totalDisplacement2025: displacementRows.reduce((sum, r) => sum + r.y2025, 0),
+      totalConflict2025: conflictRows.reduce((sum, r) => sum + r.y2025, 0),
       totalLGAs: lgaSet.size,
     },
   }
 }
 
+/** Fetch and parse the Google Sheet CSV */
+export async function fetchAndParseSheet(): Promise<BornoData> {
+  const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`)
+  const text = await res.text()
+  return parseCSV(text)
+}
+
 export async function GET() {
   try {
-    const res = await fetch(SHEET_CSV_URL, { next: { revalidate: 3600 } })
-    if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`)
-    const text = await res.text()
-    const data = parseCSV(text)
-    return NextResponse.json(data)
+    // 1. Check Firestore first — serve cached data if fresh
+    const cached = await readTrackerData('borno')
+    if (cached && cached.lastSynced && Date.now() - cached.lastSynced < FIVE_MIN) {
+      return NextResponse.json(cached)
+    }
+
+    // 2. Fetch fresh from Google Sheet
+    const fresh = await fetchAndParseSheet()
+    const lastSynced = Date.now()
+
+    // 3. Persist to Firestore for next requests
+    await writeTrackerData('borno', fresh)
+
+    return NextResponse.json({ ...fresh, lastSynced })
   } catch (err) {
     console.error('[borno-sheets]', err)
+    // Fallback: serve stale Firestore data rather than empty
+    try {
+      const stale = await readTrackerData('borno')
+      if (stale) return NextResponse.json(stale)
+    } catch {
+      // ignore
+    }
     return NextResponse.json(
       { lgas: [], indicators: [], rows: [], summary: { totalDisplacement2025: 0, totalConflict2025: 0, totalLGAs: 0 } },
-      { status: 200 } // Return empty data rather than 500 so the page still renders
+      { status: 200 }
     )
   }
 }

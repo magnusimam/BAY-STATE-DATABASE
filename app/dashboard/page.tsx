@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 
 import type { BornoData } from '@/app/api/sheets/borno/route'
+import { useAuth } from '@/lib/auth-context'
 
 // BAY States data
 const bayHumanitarianData = [
@@ -159,13 +160,43 @@ function ChartCard({
 
 export default function Dashboard() {
   const [bornoData, setBornoData] = React.useState<BornoData | null>(null)
+  const [syncing, setSyncing] = React.useState(false)
+  const [lastSynced, setLastSynced] = React.useState<number | null>(null)
+  const { user } = useAuth()
+
+  const isAdmin = !!(user?.email && (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()))
 
   React.useEffect(() => {
-    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+    fetch('/api/sheets/borno').then(r => r.json()).then((d: BornoData) => {
+      setBornoData(d)
+      if (d.lastSynced) setLastSynced(d.lastSynced)
+    }).catch(() => {})
   }, [])
+
+  const handleSync = async () => {
+    if (!user) return
+    setSyncing(true)
+    try {
+      const token = await user.getIdToken()
+      await fetch('/api/admin/sync', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+      const fresh: BornoData = await fetch('/api/sheets/borno').then(r => r.json())
+      setBornoData(fresh)
+      setLastSynced(Date.now())
+    } catch {
+      // ignore
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   const bornoLGAs = bornoData?.summary.totalLGAs ?? 27
   const bornoDisplaced = bornoData ? (bornoData.summary.totalDisplacement2025 / 1_000_000).toFixed(2) + 'M' : '0.21M'
+
+  const syncedAgo = lastSynced
+    ? Math.round((Date.now() - lastSynced) / 60000) === 0
+      ? 'just now'
+      : `${Math.round((Date.now() - lastSynced) / 60000)}m ago`
+    : null
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
@@ -175,7 +206,7 @@ export default function Dashboard() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">Dashboard</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Real-time humanitarian and youth data insights</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <Button variant="outline" size="sm" className="border-border gap-1.5 sm:gap-2 bg-transparent text-xs sm:text-sm h-8 sm:h-9">
             <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Filter
@@ -188,6 +219,23 @@ export default function Dashboard() {
             <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Export
           </Button>
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSync}
+                disabled={syncing}
+                className="border-accent/40 text-accent hover:bg-accent/10 gap-1.5 text-xs sm:text-sm h-8 sm:h-9"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${syncing ? 'animate-spin' : ''}`} />
+                {syncing ? 'Syncing…' : 'Sync Sheet'}
+              </Button>
+              {syncedAgo && (
+                <span className="text-xs text-muted-foreground">Last synced: {syncedAgo}</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
