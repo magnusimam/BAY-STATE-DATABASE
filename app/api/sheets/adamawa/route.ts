@@ -127,7 +127,7 @@ export async function GET() {
 
     const fresh = await fetchAndParseAdamawaSheet()
     const lastSynced = Date.now()
-    await writeTrackerData('adamawa', fresh)
+    writeTrackerData('adamawa', fresh).catch(() => {})
 
     return NextResponse.json({ ...fresh, lastSynced })
   } catch (err) {

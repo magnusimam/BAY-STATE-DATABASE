@@ -145,8 +145,8 @@ export async function GET() {
     const fresh = await fetchAndParseSheet()
     const lastSynced = Date.now()
 
-    // 3. Persist to Firestore for next requests
-    await writeTrackerData('borno', fresh)
+    // 3. Persist to Firestore (non-blocking — don't let write failures break the response)
+    writeTrackerData('borno', fresh).catch(() => {})
 
     return NextResponse.json({ ...fresh, lastSynced })
   } catch (err) {

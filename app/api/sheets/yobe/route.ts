@@ -127,7 +127,7 @@ export async function GET() {
 
     const fresh = await fetchAndParseYobeSheet()
     const lastSynced = Date.now()
-    await writeTrackerData('yobe', fresh)
+    writeTrackerData('yobe', fresh).catch(() => {})
 
     return NextResponse.json({ ...fresh, lastSynced })
   } catch (err) {
