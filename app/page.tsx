@@ -8,6 +8,8 @@ import { ArrowRight, TrendingUp, Users, Globe, Zap, Heart, Shield, BookOpen, Quo
 import { useState, useEffect } from 'react'
 import { AnimatedCounter, FadeIn, Sparkline, PulseDot, Skeleton } from '@/components/ui/animations'
 import type { BornoData } from '@/app/api/sheets/borno/route'
+import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
+import type { YobeData } from '@/app/api/sheets/yobe/route'
 import { EditorProvider, useEditor } from '@/components/editor/EditorContext'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
@@ -306,7 +308,7 @@ function IndicatorCards() {
   )
 }
 
-function GeographicSnapshot({ bornoData }: { bornoData: BornoData | null }) {
+function GeographicSnapshot({ bornoData, adamawaData, yobeData }: { bornoData: BornoData | null; adamawaData: AdamawaData | null; yobeData: YobeData | null }) {
   const { content } = useEditor()
   const accent = content.colors?.accent ?? '#f4b942'
 
@@ -315,13 +317,23 @@ function GeographicSnapshot({ bornoData }: { bornoData: BornoData | null }) {
   const bornoConflict = borno ? borno.totalConflict2025.toLocaleString() : '…'
   const bornoLGAs = borno ? borno.totalLGAs : 27
 
-  // Bubble label for Borno uses displaced persons from real data
+  const adamawa = adamawaData?.summary
+  const adamawaDisplaced = adamawa ? adamawa.totalDisplacement2025.toLocaleString() : '…'
+  const adamawaLGAs = adamawa ? adamawa.totalLGAs : 21
+
+  const yobe = yobeData?.summary
+  const yobeDisplaced = yobe ? yobe.totalDisplacement2025.toLocaleString() : '…'
+  const yobeLGAs = yobe ? yobe.totalLGAs : 17
+
+  // Bubble labels use real data when available
   const bornoBubbleLabel = borno ? `${Math.round(borno.totalDisplacement2025 / 1000)}K displaced` : '212K displaced'
+  const adamawaBubbleLabel = adamawa ? `${Math.round(adamawa.totalDisplacement2025 / 1000)}K displaced` : '2.15M need'
+  const yobeBubbleLabel = yobe ? `${Math.round(yobe.totalDisplacement2025 / 1000)}K displaced` : '1.78M need'
 
   const stateCards = [
-    { name: 'Borno', sub: `${bornoLGAs} LGAs · Real-time data`, stat: bornoDisplaced, statLabel: 'displaced', real: true },
-    { name: 'Adamawa', sub: '3.79M population', stat: '2.15M', statLabel: 'in need', real: false },
-    { name: 'Yobe', sub: '2.43M population', stat: '1.78M', statLabel: 'in need', real: false },
+    { name: 'Borno', sub: `${bornoLGAs} LGAs · Real-time data`, stat: bornoDisplaced, statLabel: 'displaced', real: true, loading: !borno },
+    { name: 'Adamawa', sub: `${adamawaLGAs} LGAs · Real-time data`, stat: adamawaDisplaced, statLabel: 'displaced', real: true, loading: !adamawa },
+    { name: 'Yobe', sub: `${yobeLGAs} LGAs · Real-time data`, stat: yobeDisplaced, statLabel: 'displaced', real: true, loading: !yobe },
   ]
 
   return (
@@ -357,7 +369,7 @@ function GeographicSnapshot({ bornoData }: { bornoData: BornoData | null }) {
                     <div className="text-[10px] sm:text-xs text-muted-foreground">{state.sub}</div>
                   </div>
                   <div className="text-right relative z-10">
-                    {state.real && !borno ? (
+                    {state.real && state.loading ? (
                       <Skeleton className="h-4 w-16 mb-1" />
                     ) : (
                       <div className="text-xs sm:text-sm font-bold" style={{ color: accent }}>{state.stat}</div>
@@ -386,8 +398,8 @@ function GeographicSnapshot({ bornoData }: { bornoData: BornoData | null }) {
               <div className="absolute inset-0">
                 {[
                   { x: '25%', y: '45%', label: 'Borno', value: bornoBubbleLabel },
-                  { x: '50%', y: '55%', label: 'Adamawa', value: '2.15M need' },
-                  { x: '70%', y: '40%', label: 'Yobe', value: '1.78M need' },
+                  { x: '50%', y: '55%', label: 'Adamawa', value: adamawaBubbleLabel },
+                  { x: '70%', y: '40%', label: 'Yobe', value: yobeBubbleLabel },
                 ].map((bubble, idx) => (
                   <div key={idx} className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer" style={{ left: bubble.x, top: bubble.y }}>
                     <div className="rounded-full hover:opacity-80 active:scale-110 transition-all duration-200 border flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shadow-lg" style={{ backgroundColor: `${accent}cc`, borderColor: `${accent}80`, boxShadow: `0 8px 24px -4px ${accent}4d` }}>
@@ -820,19 +832,29 @@ function Footer() {
 function PageContent() {
   const { content, isEditing } = useEditor()
   const [bornoData, setBornoData] = useState<BornoData | null>(null)
+  const [adamawaData, setAdamawaData] = useState<AdamawaData | null>(null)
+  const [yobeData, setYobeData] = useState<YobeData | null>(null)
 
   useEffect(() => {
     fetch('/api/sheets/borno')
       .then(r => r.json())
       .then(data => setBornoData(data))
       .catch(() => {/* silently fail — sections handle null gracefully */})
+    fetch('/api/sheets/adamawa')
+      .then(r => r.json())
+      .then(data => setAdamawaData(data))
+      .catch(() => {})
+    fetch('/api/sheets/yobe')
+      .then(r => r.json())
+      .then(data => setYobeData(data))
+      .catch(() => {})
   }, [])
 
   // Section registry — components that need bornoData receive it via a wrapper
   const SECTIONS: Record<string, React.ComponentType> = {
     hero: HeroSection,
     indicators: IndicatorCards,
-    geographic: () => <GeographicSnapshot bornoData={bornoData} />,
+    geographic: () => <GeographicSnapshot bornoData={bornoData} adamawaData={adamawaData} yobeData={yobeData} />,
     'borno-tracker': () => <BornoTrackerSection bornoData={bornoData} />,
     features: FeaturesSection,
     impact: ImpactStoriesSection,

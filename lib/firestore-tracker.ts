@@ -1,8 +1,15 @@
 import { db } from './firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
-import type { BornoData } from '@/app/api/sheets/borno/route'
 
-export type TrackerDoc = BornoData & { lastSynced: number }
+export interface StateData {
+  lgas: string[]
+  indicators: string[]
+  rows: object[]
+  summary: { totalDisplacement2025: number; totalConflict2025: number; totalLGAs: number }
+  lastSynced?: number
+}
+
+export type TrackerDoc = StateData & { lastSynced: number }
 
 export async function readTrackerData(state: string): Promise<TrackerDoc | null> {
   if (!db) return null
@@ -14,7 +21,7 @@ export async function readTrackerData(state: string): Promise<TrackerDoc | null>
   }
 }
 
-export async function writeTrackerData(state: string, data: BornoData): Promise<void> {
+export async function writeTrackerData(state: string, data: Omit<StateData, 'lastSynced'>): Promise<void> {
   if (!db) return
   await setDoc(doc(db, 'tracker', state), { ...data, lastSynced: Date.now() })
 }

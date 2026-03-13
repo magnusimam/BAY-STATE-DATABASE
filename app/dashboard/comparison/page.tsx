@@ -31,6 +31,8 @@ import {
 import { Plus, X, Download } from 'lucide-react'
 import { bayStates, type BAYState } from '@/lib/bay-data'
 import type { BornoData } from '@/app/api/sheets/borno/route'
+import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
+import type { YobeData } from '@/app/api/sheets/yobe/route'
 
 // BAY States data with timeline
 const statesData: Record<string, any> = {
@@ -119,9 +121,13 @@ export default function Comparison() {
   const [selected, setSelected] = useState<string[]>(['BN', 'AD', 'YB'])
   const [compareMetric, setCompareMetric] = useState('need')
   const [bornoData, setBornoData] = useState<BornoData | null>(null)
+  const [adamawaData, setAdamawaData] = useState<AdamawaData | null>(null)
+  const [yobeData, setYobeData] = useState<YobeData | null>(null)
 
   useEffect(() => {
     fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+    fetch('/api/sheets/adamawa').then(r => r.json()).then(setAdamawaData).catch(() => {})
+    fetch('/api/sheets/yobe').then(r => r.json()).then(setYobeData).catch(() => {})
   }, [])
 
   // Derive live Borno metrics from sheet
@@ -139,11 +145,43 @@ export default function Comparison() {
     }
   }, [bornoData])
 
-  // Override Borno metrics with live sheet values
+  // Derive live Adamawa metrics from sheet
+  const liveAdamawaMetrics = useMemo(() => {
+    if (!adamawaData) return {}
+    const avg = (indicator: string) => {
+      const rows = adamawaData.rows.filter(r => r.indicator === indicator)
+      if (!rows.length) return null
+      return +(rows.reduce((s, r) => s + r.y2025, 0) / rows.length).toFixed(1)
+    }
+    return {
+      youthUnemployment: avg('Unemployment Rate') ?? statesData.AD.youthUnemployment,
+      literacyRate: avg('Literacy Rate') ?? statesData.AD.literacyRate,
+      displacedPersons: +(adamawaData.summary.totalDisplacement2025 / 1_000_000).toFixed(3),
+    }
+  }, [adamawaData])
+
+  // Derive live Yobe metrics from sheet
+  const liveYobeMetrics = useMemo(() => {
+    if (!yobeData) return {}
+    const avg = (indicator: string) => {
+      const rows = yobeData.rows.filter(r => r.indicator === indicator)
+      if (!rows.length) return null
+      return +(rows.reduce((s, r) => s + r.y2025, 0) / rows.length).toFixed(1)
+    }
+    return {
+      youthUnemployment: avg('Unemployment Rate') ?? statesData.YB.youthUnemployment,
+      literacyRate: avg('Literacy Rate') ?? statesData.YB.literacyRate,
+      displacedPersons: +(yobeData.summary.totalDisplacement2025 / 1_000_000).toFixed(3),
+    }
+  }, [yobeData])
+
+  // Override all BAY state metrics with live sheet values
   const computedData = useMemo<Record<string, any>>(() => ({
     ...statesData,
     BN: { ...statesData.BN, ...liveBornoMetrics },
-  }), [liveBornoMetrics])
+    AD: { ...statesData.AD, ...liveAdamawaMetrics },
+    YB: { ...statesData.YB, ...liveYobeMetrics },
+  }), [liveBornoMetrics, liveAdamawaMetrics, liveYobeMetrics])
 
   // Shadow module-level countriesData so all existing JSX uses live data
   const countriesData = computedData

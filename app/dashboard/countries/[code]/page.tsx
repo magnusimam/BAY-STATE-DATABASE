@@ -24,6 +24,8 @@ import { ArrowLeft, Download, Share2, TrendingUp } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { Sparkline, Skeleton } from '@/components/ui/animations'
 import type { BornoData } from '@/app/api/sheets/borno/route'
+import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
+import type { YobeData } from '@/app/api/sheets/yobe/route'
 
 // Mock data for countries
 const countryDetails: Record<string, any> = {
@@ -117,13 +119,22 @@ const countryDetails: Record<string, any> = {
   },
 }
 
-// ─── Borno Detail Page (live from Google Sheet) ───────────────────────────────
+// ─── BAY State Detail Pages (live from Google Sheet) ──────────────────────────
 const ZONE_COLORS: Record<string, string> = {
   'Conflict-Affected': '#ef4444',
   'Stable/Urban': '#22c55e',
   'Semi-Stable': '#f59e0b',
+  'High Risk': '#ef4444',
+  'Moderate Risk': '#f59e0b',
+  'Low Risk': '#22c55e',
 }
 const LOWER_IS_BETTER = new Set(['Unemployment Rate', 'Displacement', 'Conflict Incidents', 'Out-of-school Gap', 'Voter Card Gap'])
+
+const STATE_CONFIG: Record<string, { name: string; region: string; apiUrl: string; accentColor: string }> = {
+  bn: { name: 'Borno State', region: 'Northeast Nigeria', apiUrl: '/api/sheets/borno', accentColor: '#f4b942' },
+  ad: { name: 'Adamawa State', region: 'Northeast Nigeria', apiUrl: '/api/sheets/adamawa', accentColor: '#6ec6e8' },
+  yb: { name: 'Yobe State', region: 'Northeast Nigeria', apiUrl: '/api/sheets/yobe', accentColor: '#8b5cf6' },
+}
 
 function fmtVal(value: number, indicator: string): string {
   if (indicator === 'Ag Output (₦)') return `₦${value.toLocaleString()}`
@@ -131,19 +142,20 @@ function fmtVal(value: number, indicator: string): string {
   return `${value.toFixed(1)}%`
 }
 
-function BornoDetailPage() {
+function StateDetailPage({ stateCode }: { stateCode: string }) {
   const router = useRouter()
-  const [bornoData, setBornoData] = useState<BornoData | null>(null)
+  const config = STATE_CONFIG[stateCode]
+  const [stateData, setStateData] = useState<BornoData | AdamawaData | YobeData | null>(null)
   const [selectedYear, setSelectedYear] = useState<'y2022' | 'y2023' | 'y2024' | 'y2025'>('y2025')
   const [selectedIndicator, setSelectedIndicator] = useState('Displacement')
 
   useEffect(() => {
-    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
-  }, [])
+    fetch(config.apiUrl).then(r => r.json()).then(setStateData).catch(() => {})
+  }, [config.apiUrl])
 
-  const rows = bornoData?.rows ?? []
-  const indicators = bornoData?.indicators ?? []
-  const summary = bornoData?.summary
+  const rows = stateData?.rows ?? []
+  const indicators = stateData?.indicators ?? []
+  const summary = stateData?.summary
 
   // LGA rows for selected indicator, sorted
   const filteredRows = useMemo(() =>
@@ -196,8 +208,8 @@ function BornoDetailPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl sm:text-4xl font-bold">Borno State</h1>
-            <Badge className="bg-accent/20 text-accent border-accent/30">Northeast Nigeria</Badge>
+            <h1 className="text-3xl sm:text-4xl font-bold">{config.name}</h1>
+            <Badge className="bg-accent/20 text-accent border-accent/30">{config.region}</Badge>
             <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">LIVE DATA</Badge>
           </div>
           <p className="text-muted-foreground text-sm">Youth Peace &amp; Security Performance Tracker · 2022–2025</p>
@@ -249,16 +261,16 @@ function BornoDetailPage() {
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={trendData}>
               <defs>
-                <linearGradient id="bornoGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f4b942" stopOpacity={0.7} />
-                  <stop offset="95%" stopColor="#f4b942" stopOpacity={0.05} />
+                <linearGradient id="stateGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={config.accentColor} stopOpacity={0.7} />
+                  <stop offset="95%" stopColor={config.accentColor} stopOpacity={0.05} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
               <XAxis dataKey="year" stroke="#94a3b8" tick={{ fontSize: 12 }} />
               <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }} />
-              <Area type="monotone" dataKey="value" stroke="#f4b942" fill="url(#bornoGrad)" name={selectedIndicator} />
+              <Area type="monotone" dataKey="value" stroke={config.accentColor} fill="url(#stateGrad)" name={selectedIndicator} />
             </AreaChart>
           </ResponsiveContainer>
         </Card>
@@ -285,7 +297,7 @@ function BornoDetailPage() {
       {/* LGA table */}
       <Card className="bg-card border-border overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-border">
-          <h3 className="font-bold text-sm sm:text-base">All 27 LGAs — {selectedIndicator} · {selectedYear.replace('y', '')}</h3>
+          <h3 className="font-bold text-sm sm:text-base">All {summary?.totalLGAs ?? '—'} LGAs — {selectedIndicator} · {selectedYear.replace('y', '')}</h3>
           <p className="text-xs text-muted-foreground mt-1">Sorted by performance · Sparklines show 2022–2025 trend</p>
         </div>
 
@@ -298,7 +310,7 @@ function BornoDetailPage() {
           <span className="text-right w-16 hidden sm:block">Trend</span>
         </div>
 
-        {!bornoData ? (
+        {!stateData ? (
           Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-3 border-b border-border/40 items-center">
               <Skeleton className="h-3 w-28" />
@@ -387,8 +399,8 @@ export default function CountryDetail() {
   const router = useRouter()
   const code = params.code as string
 
-  // Route Borno to its dedicated live-data page
-  if (code === 'bn') return <BornoDetailPage />
+  // Route BAY states to their live-data detail pages
+  if (code === 'bn' || code === 'ad' || code === 'yb') return <StateDetailPage stateCode={code} />
 
   const country = getCountryDetails(code)
 

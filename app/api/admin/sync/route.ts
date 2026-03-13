@@ -1,5 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { fetchAndParseSheet } from '@/app/api/sheets/borno/route'
+import { fetchAndParseAdamawaSheet } from '@/app/api/sheets/adamawa/route'
+import { fetchAndParseYobeSheet } from '@/app/api/sheets/yobe/route'
 import { writeTrackerData } from '@/lib/firestore-tracker'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
@@ -39,15 +41,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // Force-fetch sheet and write to Firestore
+  // Force-fetch all sheets and write to Firestore in parallel
   try {
-    const data = await fetchAndParseSheet()
+    const [bornoData, adamawaData, yobeData] = await Promise.all([
+      fetchAndParseSheet(),
+      fetchAndParseAdamawaSheet(),
+      fetchAndParseYobeSheet(),
+    ])
     const lastSynced = Date.now()
-    await writeTrackerData('borno', data)
+    await Promise.all([
+      writeTrackerData('borno', bornoData),
+      writeTrackerData('adamawa', adamawaData),
+      writeTrackerData('yobe', yobeData),
+    ])
     return NextResponse.json({
       success: true,
       lastSynced,
-      summary: data.summary,
+      borno: bornoData.summary,
+      adamawa: adamawaData.summary,
+      yobe: yobeData.summary,
     })
   } catch (err) {
     console.error('[admin-sync]', err)

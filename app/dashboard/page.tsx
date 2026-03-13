@@ -36,6 +36,8 @@ import {
 } from 'lucide-react'
 
 import type { BornoData } from '@/app/api/sheets/borno/route'
+import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
+import type { YobeData } from '@/app/api/sheets/yobe/route'
 import { useAuth } from '@/lib/auth-context'
 
 // BAY States data
@@ -160,6 +162,8 @@ function ChartCard({
 
 export default function Dashboard() {
   const [bornoData, setBornoData] = React.useState<BornoData | null>(null)
+  const [adamawaData, setAdamawaData] = React.useState<AdamawaData | null>(null)
+  const [yobeData, setYobeData] = React.useState<YobeData | null>(null)
   const [syncing, setSyncing] = React.useState(false)
   const [lastSynced, setLastSynced] = React.useState<number | null>(null)
   const { user } = useAuth()
@@ -171,6 +175,12 @@ export default function Dashboard() {
       setBornoData(d)
       if (d.lastSynced) setLastSynced(d.lastSynced)
     }).catch(() => {})
+    fetch('/api/sheets/adamawa').then(r => r.json()).then((d: AdamawaData) => {
+      setAdamawaData(d)
+    }).catch(() => {})
+    fetch('/api/sheets/yobe').then(r => r.json()).then((d: YobeData) => {
+      setYobeData(d)
+    }).catch(() => {})
   }, [])
 
   const handleSync = async () => {
@@ -179,8 +189,14 @@ export default function Dashboard() {
     try {
       const token = await user.getIdToken()
       await fetch('/api/admin/sync', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
-      const fresh: BornoData = await fetch('/api/sheets/borno').then(r => r.json())
+      const [fresh, freshAD, freshYB] = await Promise.all([
+        fetch('/api/sheets/borno').then(r => r.json()),
+        fetch('/api/sheets/adamawa').then(r => r.json()),
+        fetch('/api/sheets/yobe').then(r => r.json()),
+      ])
       setBornoData(fresh)
+      setAdamawaData(freshAD)
+      setYobeData(freshYB)
       setLastSynced(Date.now())
     } catch {
       // ignore
@@ -191,6 +207,8 @@ export default function Dashboard() {
 
   const bornoLGAs = bornoData?.summary.totalLGAs ?? 27
   const bornoDisplaced = bornoData ? (bornoData.summary.totalDisplacement2025 / 1_000_000).toFixed(2) + 'M' : '0.21M'
+  const adamawaLGAs = adamawaData?.summary.totalLGAs ?? 21
+  const yobeLGAs = yobeData?.summary.totalLGAs ?? 17
 
   const syncedAgo = lastSynced
     ? Math.round((Date.now() - lastSynced) / 60000) === 0
@@ -274,7 +292,29 @@ export default function Dashboard() {
             sparklineColor="#8b5cf6"
           />
         </FadeIn>
+        <FadeIn delay={250} direction="up">
+          <KPICard
+            title="Adamawa LGAs Tracked"
+            value={String(adamawaLGAs)}
+            change="Live from Google Sheet"
+            icon={Globe}
+            trend="up"
+            sparklineData={[5, 8, 12, 16, 19, adamawaLGAs]}
+            sparklineColor="#6ec6e8"
+          />
+        </FadeIn>
         <FadeIn delay={300} direction="up">
+          <KPICard
+            title="Yobe LGAs Tracked"
+            value={String(yobeLGAs)}
+            change="Live from Google Sheet"
+            icon={Globe}
+            trend="up"
+            sparklineData={[4, 7, 10, 13, 15, yobeLGAs]}
+            sparklineColor="#8b5cf6"
+          />
+        </FadeIn>
+        <FadeIn delay={350} direction="up">
           <KPICard
             title="Active Programs"
             value="1,167"
