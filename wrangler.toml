@@ -1,0 +1,30 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "humaid-bay-states"
+main = ".open-next/worker.js"
+compatibility_date = "2026-03-17"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+
+# ── D1 Database ──────────────────────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "humaid-bay-states-db"
+database_id = "d32e5057-226f-4429-b702-2948ed1cdfab"
+
+# ── KV Namespace ─────────────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "CACHE"
+id = "c8b8a51d8fb44b0288849d4809033434"
+
+# ── Observability ────────────────────────────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true

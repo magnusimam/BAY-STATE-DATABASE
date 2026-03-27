@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { fetchAndParseSheet } from '@/app/api/sheets/borno/route'
 import { fetchAndParseAdamawaSheet } from '@/app/api/sheets/adamawa/route'
 import { fetchAndParseYobeSheet } from '@/app/api/sheets/yobe/route'
-import { writeTrackerData } from '@/lib/firestore-tracker'
+import { writeCachedState, writeStateDataToD1 } from '@/lib/cloudflare'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
   .split(',')
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // Force-fetch all sheets and write to Firestore in parallel
+  // Force-fetch all sheets and write to D1 + KV cache in parallel
   try {
     const [bornoData, adamawaData, yobeData] = await Promise.all([
       fetchAndParseSheet(),
@@ -50,9 +50,12 @@ export async function POST(req: NextRequest) {
     ])
     const lastSynced = Date.now()
     await Promise.all([
-      writeTrackerData('borno', bornoData),
-      writeTrackerData('adamawa', adamawaData),
-      writeTrackerData('yobe', yobeData),
+      writeStateDataToD1('borno', bornoData.rows),
+      writeStateDataToD1('adamawa', adamawaData.rows),
+      writeStateDataToD1('yobe', yobeData.rows),
+      writeCachedState('borno', bornoData),
+      writeCachedState('adamawa', adamawaData),
+      writeCachedState('yobe', yobeData),
     ])
     return NextResponse.json({
       success: true,

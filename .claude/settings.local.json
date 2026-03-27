@@ -1,7 +1,40 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(npx -p typescript tsc --noEmit)",
+      "Read(//c/Users/user/**)",
+      "Bash(cmd //c \"dir C:\\\\Users\\\\user\\\\bay-state-db\")",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(cd:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(curl:*)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i 's|C:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\user\\\\\\\\\\\\\\\\BAY STATE INTELLIGENCE\\\\\\\\\\\\\\\\BAY-STATE-DATABASE|/app|g' \"$f\")",
+      "Bash(echo \"Fixed: $f\")",
+      "Bash(done)",
+      "Bash(python fix-paths.py)",
+      "Bash(rm -rf .open-next)",
+      "Bash(npx opennextjs-cloudflare:*)",
+      "Bash(dd:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''appDir:'''', d.get\\(''''appDir'''',''''''''\\)\\); print\\(''''relativeAppDir:'''', d.get\\(''''relativeAppDir'''',''''''''\\)\\); [print\\(k,'''':'''',v\\) for k,v in d.items\\(\\) if k not in \\(''''config'''',''''files''''\\)]\")",
+      "Bash(grep -r \"BAY.STATE\\\\|C:\\\\Users\\\\|C:/Users\" '/c/Users/user/BAY STATE INTELLIGENCE/BAY-STATE-DATABASE/.open-next/server-functions/default/.next/' --include=*.json)",
+      "Bash(grep:*)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(rm -rf .open-next .next)",
+      "Bash(find /c/Users/user/BAY STATE INTELLIGENCE/BAY-STATE-DATABASE/lib -type f -name *.ts -o -name *.tsx)",
+      "Read(//c/Users/user/BAY STATE INTELLIGENCE/BAY-STATE-DATABASE/$APPDATA/xdg.config/**)",
+      "Read(//c/Users/user/BAY STATE INTELLIGENCE/BAY-STATE-DATABASE/$HOME/**)",
+      "Read(//c/Users/user/BAY STATE INTELLIGENCE/BAY-STATE-DATABASE/$APPDATA/**)",
+      "Bash(node -e \"console.log\\(''Node:'', process.version\\); console.log\\(''Next:'', require\\(''next/package.json''\\).version\\); console.log\\(''OpenNext:'', require\\(''@opennextjs/cloudflare/package.json''\\).version\\)\")",
+      "Bash(taskkill //F //IM workerd.exe)",
+      "Bash(taskkill //F //IM miniflare.exe)",
+      "Bash(wsl:*)",
+      "Read(//tmp/**)",
+      "Bash(npm view:*)"
     ]
   }
 }

@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
-import { readTrackerData, writeTrackerData } from '@/lib/firestore-tracker'
+import { readCachedState, writeCachedState, writeStateDataToD1, readStateDataFromD1 } from '@/lib/cloudflare'
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1EPP646vv0zrcGAUIo5BKnclTWO8keDnxPUtDv-QsXh0/export?format=csv&gid=944871388'
-
-const FIVE_MIN = 5 * 60 * 1000
 
 // Indicators whose raw CSV values are stored as ×100 (e.g. "3400.00%" means 34%)
 const DIVIDE_BY_100_INDICATORS = new Set(['Youth % Population', 'Out-of-school Gap', 'Voter Card Gap'])
@@ -135,9 +133,9 @@ export async function fetchAndParseSheet(): Promise<BornoData> {
 
 export async function GET() {
   try {
-    // 1. Check Firestore first — serve cached data if fresh
-    const cached = await readTrackerData('borno')
-    if (cached && cached.lastSynced && Date.now() - cached.lastSynced < FIVE_MIN) {
+    // 1. Check KV cache first — serve if fresh
+    const cached = await readCachedState('borno')
+    if (cached) {
       return NextResponse.json(cached)
     }
 
@@ -145,15 +143,16 @@ export async function GET() {
     const fresh = await fetchAndParseSheet()
     const lastSynced = Date.now()
 
-    // 3. Persist to Firestore (non-blocking — don't let write failures break the response)
-    writeTrackerData('borno', fresh).catch(() => {})
+    // 3. Persist to KV cache + D1 (non-blocking)
+    writeCachedState('borno', fresh).catch(() => {})
+    writeStateDataToD1('borno', fresh.rows).catch(() => {})
 
     return NextResponse.json({ ...fresh, lastSynced })
   } catch (err) {
     console.error('[borno-sheets]', err)
-    // Fallback: serve stale Firestore data rather than empty
+    // Fallback: serve from D1 rather than empty
     try {
-      const stale = await readTrackerData('borno')
+      const stale = await readStateDataFromD1('borno')
       if (stale) return NextResponse.json(stale)
     } catch {
       // ignore

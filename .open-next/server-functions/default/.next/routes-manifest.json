@@ -1,0 +1,174 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/dashboard/countries/[code]",
+      "regex": "^/dashboard/countries/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcode": "nxtPcode"
+      },
+      "namedRegex": "^/dashboard/countries/(?<nxtPcode>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/content",
+      "regex": "^/admin/content(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/content(?:/)?$"
+    },
+    {
+      "page": "/admin/sections",
+      "regex": "^/admin/sections(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/sections(?:/)?$"
+    },
+    {
+      "page": "/admin/theme",
+      "regex": "^/admin/theme(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/theme(?:/)?$"
+    },
+    {
+      "page": "/api/admin/sync",
+      "regex": "^/api/admin/sync(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/sync(?:/)?$"
+    },
+    {
+      "page": "/api/editor/content",
+      "regex": "^/api/editor/content(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/editor/content(?:/)?$"
+    },
+    {
+      "page": "/api/editor/save",
+      "regex": "^/api/editor/save(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/editor/save(?:/)?$"
+    },
+    {
+      "page": "/api/sheets/adamawa",
+      "regex": "^/api/sheets/adamawa(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sheets/adamawa(?:/)?$"
+    },
+    {
+      "page": "/api/sheets/borno",
+      "regex": "^/api/sheets/borno(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sheets/borno(?:/)?$"
+    },
+    {
+      "page": "/api/sheets/yobe",
+      "regex": "^/api/sheets/yobe(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sheets/yobe(?:/)?$"
+    },
+    {
+      "page": "/auth/signin",
+      "regex": "^/auth/signin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/signin(?:/)?$"
+    },
+    {
+      "page": "/auth/signup",
+      "regex": "^/auth/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/signup(?:/)?$"
+    },
+    {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/analysis",
+      "regex": "^/dashboard/analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/analysis(?:/)?$"
+    },
+    {
+      "page": "/dashboard/comparison",
+      "regex": "^/dashboard/comparison(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/comparison(?:/)?$"
+    },
+    {
+      "page": "/dashboard/countries",
+      "regex": "^/dashboard/countries(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/countries(?:/)?$"
+    },
+    {
+      "page": "/dashboard/policy-briefs",
+      "regex": "^/dashboard/policy\\-briefs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/policy\\-briefs(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

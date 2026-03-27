@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import path from 'path'
+import { readSiteContent } from '@/lib/cloudflare'
+import defaultContent from '@/lib/site-content.json'
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), 'lib', 'site-content.json')
-    const raw = await readFile(filePath, 'utf-8')
-    return NextResponse.json(JSON.parse(raw))
+    // Try D1 first, fall back to static default
+    const content = await readSiteContent()
+    return NextResponse.json(content ?? defaultContent)
   } catch {
-    return NextResponse.json({ error: 'Failed to read content' }, { status: 500 })
+    return NextResponse.json(defaultContent)
   }
 }

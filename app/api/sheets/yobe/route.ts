@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
-import { readTrackerData, writeTrackerData } from '@/lib/firestore-tracker'
+import { readCachedState, writeCachedState, writeStateDataToD1, readStateDataFromD1 } from '@/lib/cloudflare'
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1EDzsjdYffFoVC7FCHcnEzkRh1YBcjD824o20pBoGtSE/export?format=csv'
-
-const FIVE_MIN = 5 * 60 * 1000
 
 export type YobeZone = 'Conflict-Affected' | 'Semi-Stable' | 'Stable/Urban'
 
@@ -120,20 +118,25 @@ export async function fetchAndParseYobeSheet(): Promise<YobeData> {
 
 export async function GET() {
   try {
-    const cached = await readTrackerData('yobe')
-    if (cached && cached.lastSynced && Date.now() - cached.lastSynced < FIVE_MIN) {
+    // 1. Check KV cache first
+    const cached = await readCachedState('yobe')
+    if (cached) {
       return NextResponse.json(cached)
     }
 
+    // 2. Fetch fresh from Google Sheet
     const fresh = await fetchAndParseYobeSheet()
     const lastSynced = Date.now()
-    writeTrackerData('yobe', fresh).catch(() => {})
+
+    // 3. Persist to KV cache + D1 (non-blocking)
+    writeCachedState('yobe', fresh).catch(() => {})
+    writeStateDataToD1('yobe', fresh.rows).catch(() => {})
 
     return NextResponse.json({ ...fresh, lastSynced })
   } catch (err) {
     console.error('[yobe-sheets]', err)
     try {
-      const stale = await readTrackerData('yobe')
+      const stale = await readStateDataFromD1('yobe')
       if (stale) return NextResponse.json(stale)
     } catch {
       // ignore

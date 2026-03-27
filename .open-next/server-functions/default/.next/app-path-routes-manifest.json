@@ -1,0 +1,23 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/content/page": "/admin/content",
+  "/admin/page": "/admin",
+  "/admin/sections/page": "/admin/sections",
+  "/admin/theme/page": "/admin/theme",
+  "/api/admin/sync/route": "/api/admin/sync",
+  "/api/editor/content/route": "/api/editor/content",
+  "/api/editor/save/route": "/api/editor/save",
+  "/api/sheets/adamawa/route": "/api/sheets/adamawa",
+  "/api/sheets/borno/route": "/api/sheets/borno",
+  "/api/sheets/yobe/route": "/api/sheets/yobe",
+  "/auth/signin/page": "/auth/signin",
+  "/auth/signup/page": "/auth/signup",
+  "/dashboard/analysis/page": "/dashboard/analysis",
+  "/dashboard/comparison/page": "/dashboard/comparison",
+  "/dashboard/countries/[code]/page": "/dashboard/countries/[code]",
+  "/dashboard/countries/page": "/dashboard/countries",
+  "/dashboard/page": "/dashboard",
+  "/dashboard/policy-briefs/page": "/dashboard/policy-briefs",
+  "/page": "/"
+}
