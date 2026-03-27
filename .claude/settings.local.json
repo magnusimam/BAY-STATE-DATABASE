@@ -34,7 +34,9 @@
       "Bash(taskkill //F //IM miniflare.exe)",
       "Bash(wsl:*)",
       "Read(//tmp/**)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(git config:*)",
+      "Bash(node -e \"const p = require\\(''./node_modules/next/package.json''\\); console.log\\(p.version\\)\")"
     ]
   }
 }
