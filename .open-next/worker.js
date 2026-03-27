@@ -14,8 +14,7 @@ export { DOShardedTagCache } from "./.build/durable-objects/sharded-tag-cache.js
 export { BucketCachePurge } from "./.build/durable-objects/bucket-cache-purge.js";
 export default {
     async fetch(request, env, ctx) {
-      try {
-        return await runWithCloudflareRequestContext(request, env, ctx, async () => {
+        return runWithCloudflareRequestContext(request, env, ctx, async () => {
             const response = maybeGetSkewProtectionResponse(request);
             if (response) {
                 return response;
@@ -40,12 +39,5 @@ export default {
             const { handler } = await import("./server-functions/default/handler.mjs");
             return handler(reqOrResp, env, ctx, request.signal);
         });
-      } catch (e) {
-        console.error('WORKER_ERROR:', e.message, e.stack);
-        return new Response(JSON.stringify({ error: e.message, stack: e.stack }, null, 2), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
     },
 };

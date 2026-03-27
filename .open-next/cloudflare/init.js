@@ -9,21 +9,8 @@ Object.defineProperty(globalThis, Symbol.for("__cloudflare-context__"), {
   }
 });
 async function runWithCloudflareRequestContext(request, env, ctx, handler) {
-  try {
-    init(request, env);
-    const result = await cloudflareContextALS.run({ env, ctx, cf: request.cf }, handler);
-    if (result instanceof Response && result.status >= 500) {
-      const body = await result.clone().text();
-      console.error('OPENNEXT_500:', request.url, body.substring(0, 500));
-    }
-    return result;
-  } catch (e) {
-    console.error('OPENNEXT_CRASH:', e.message, e.stack);
-    return new Response(JSON.stringify({ opennext_error: e.message, stack: e.stack }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  init(request, env);
+  return cloudflareContextALS.run({ env, ctx, cf: request.cf }, handler);
 }
 let initialized = false;
 function init(request, env) {
@@ -62,7 +49,7 @@ function initRuntime() {
   };
   Object.assign(globalThis, {
     Request: CustomRequest,
-    __BUILD_TIMESTAMP_MS__: 1774634441415,
+    __BUILD_TIMESTAMP_MS__: 1774637706042,
     __NEXT_BASE_PATH__: "",
     __ASSETS_RUN_WORKER_FIRST__: false,
     __TRAILING_SLASH__: false,
