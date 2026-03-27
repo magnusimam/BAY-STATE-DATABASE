@@ -36,7 +36,9 @@
       "Read(//tmp/**)",
       "Bash(npm view:*)",
       "Bash(git config:*)",
-      "Bash(node -e \"const p = require\\(''./node_modules/next/package.json''\\); console.log\\(p.version\\)\")"
+      "Bash(node -e \"const p = require\\(''./node_modules/next/package.json''\\); console.log\\(p.version\\)\")",
+      "Bash(rm pnpm-lock.yaml)",
+      "Bash(pnpm install:*)"
     ]
   }
 }
