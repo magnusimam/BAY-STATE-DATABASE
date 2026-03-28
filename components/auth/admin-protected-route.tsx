@@ -3,17 +3,13 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-
-const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
-  .split(',')
-  .map(e => e.trim().toLowerCase())
-  .filter(Boolean)
+import { isAdminEmail } from '@/lib/admin-emails'
 
 export function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
 
-  const isAdmin = ADMIN_EMAILS.length > 0 && ADMIN_EMAILS.includes((user?.email ?? '').toLowerCase())
+  const isAdmin = isAdminEmail(user?.email)
 
   useEffect(() => {
     if (!loading && !user) {

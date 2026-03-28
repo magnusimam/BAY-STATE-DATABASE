@@ -38,6 +38,7 @@ import {
 import type { MasterRow, RegionalOverviewRow, ApiResponse, SyncStatus } from '@/lib/api-types'
 import { computeSummary } from '@/lib/api-types'
 import { useAuth } from '@/lib/auth-context'
+import { isAdminEmail } from '@/lib/admin-emails'
 
 // BAY States data
 const bayHumanitarianData = [
@@ -166,7 +167,7 @@ export default function Dashboard() {
   const [lastSynced, setLastSynced] = React.useState<number | null>(null)
   const { user } = useAuth()
 
-  const isAdmin = !!(user?.email && (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()))
+  const isAdmin = isAdminEmail(user?.email)
 
   React.useEffect(() => {
     // Fetch all master data + overview + sync status in parallel

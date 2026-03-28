@@ -1,10 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { syncAllTabs } from '@/lib/sheet-sync'
-
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
-  .split(',')
-  .map(e => e.trim().toLowerCase())
-  .filter(Boolean)
+import { ADMIN_EMAILS } from '@/lib/admin-emails'
 
 async function verifyFirebaseToken(idToken: string): Promise<string | null> {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY
