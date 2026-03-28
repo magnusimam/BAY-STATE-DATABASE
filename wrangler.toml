@@ -19,6 +19,11 @@ database_id = "d32e5057-226f-4429-b702-2948ed1cdfab"
 binding = "CACHE"
 id = "c8b8a51d8fb44b0288849d4809033434"
 
+# ── Cron Triggers ───────────────────────────────────────────────────────────
+# Auto-sync Google Sheet data every 6 hours
+[triggers]
+crons = ["0 */6 * * *"]
+
 # ── Observability ────────────────────────────────────────────────────────────
 [observability]
 enabled = true

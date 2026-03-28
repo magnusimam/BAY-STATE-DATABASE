@@ -78,10 +78,11 @@ async function fetchTab(tabName: TabName): Promise<string[][]> {
 async function syncMasterData(db: D1Database): Promise<number> {
   const rows = await fetchTab('MASTER_DATA')
   // Header: State | LGA Name | Risk Zone | Indicator | 2022 | 2023 | 2024 | 2025 | Change % | Trend | Sources
-  const header = rows[0]
-  if (!header || !header.some(h => h.includes('State'))) return 0
+  // The header may not be on row 0 — find it by looking for "State" column
+  const headerIdx = rows.findIndex(r => r.some(c => c.trim() === 'State'))
+  if (headerIdx === -1) return 0
 
-  const dataRows = rows.slice(1).filter(r => r.length >= 8 && r[0].trim())
+  const dataRows = rows.slice(headerIdx + 1).filter(r => r.length >= 8 && r[0].trim())
 
   await db.prepare('DELETE FROM master_data').run()
 

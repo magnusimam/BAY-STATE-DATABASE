@@ -1,0 +1,21 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/data/route": "/api/data",
+  "/api/editor/content/route": "/api/editor/content",
+  "/api/cron/route": "/api/cron",
+  "/api/admin/sync/route": "/api/admin/sync",
+  "/api/editor/save/route": "/api/editor/save",
+  "/auth/signin/page": "/auth/signin",
+  "/auth/signup/page": "/auth/signup",
+  "/page": "/",
+  "/admin/page": "/admin",
+  "/admin/theme/page": "/admin/theme",
+  "/admin/content/page": "/admin/content",
+  "/admin/sections/page": "/admin/sections",
+  "/dashboard/analysis/page": "/dashboard/analysis",
+  "/dashboard/countries/[code]/page": "/dashboard/countries/[code]",
+  "/dashboard/policy-briefs/page": "/dashboard/policy-briefs",
+  "/dashboard/page": "/dashboard",
+  "/dashboard/countries/page": "/dashboard/countries",
+  "/dashboard/comparison/page": "/dashboard/comparison"
+}

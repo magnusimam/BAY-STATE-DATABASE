@@ -118,18 +118,22 @@ export async function GET(req: NextRequest) {
       default: {
         // No view specified — return sync status and summary
         const syncMeta = await db.prepare("SELECT * FROM sync_meta WHERE key = 'last_full_sync'").first()
-        const { results: counts } = await db.prepare(`
-          SELECT 'master_data' as t, COUNT(*) as c FROM master_data
-          UNION ALL SELECT 'regional_overview', COUNT(*) FROM regional_overview
-          UNION ALL SELECT 'lga_profiles', COUNT(*) FROM lga_profiles
-          UNION ALL SELECT 'trend_analysis', COUNT(*) FROM trend_analysis
-          UNION ALL SELECT 'indicator_analysis', COUNT(*) FROM indicator_analysis
-          UNION ALL SELECT 'methodology', COUNT(*) FROM methodology
-        `).all()
+        const tables = ['master_data', 'regional_overview', 'lga_profiles', 'trend_analysis', 'indicator_analysis', 'methodology']
+        const counts = await Promise.all(
+          tables.map(async t => {
+            const row = await db.prepare(`SELECT COUNT(*) as c FROM ${t}`).first<{ c: number }>()
+            return { t, c: row?.c ?? 0 }
+          })
+        )
+
+        let syncDetails = null
+        if (syncMeta) {
+          try { syncDetails = { updated_at: syncMeta.updated_at, details: JSON.parse(syncMeta.value as string) } } catch { syncDetails = { updated_at: syncMeta.updated_at, details: null } }
+        }
 
         return NextResponse.json({
           status: 'ok',
-          last_sync: syncMeta ? { updated_at: syncMeta.updated_at, details: JSON.parse(syncMeta.value as string) } : null,
+          last_sync: syncDetails,
           tables: counts,
         })
       }
