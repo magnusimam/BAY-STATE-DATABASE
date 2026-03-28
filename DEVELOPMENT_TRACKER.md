@@ -3,7 +3,7 @@
 
 **Project:** HUMAID - Humanitarian & Youth Data Intelligence Platform  
 **Focus:** BAY States (Borno, Adamawa, Yobe) - Northeast Nigeria  
-**Last Updated:** February 8, 2026
+**Last Updated:** March 28, 2026
 
 ---
 
@@ -13,18 +13,24 @@ HUMAID is a real-time humanitarian and youth data intelligence platform focused 
 
 ### Core Features
 - **Real-Time Dashboard** - Live humanitarian metrics and KPIs
-- **BAY States Coverage** - All 23 LGAs across Borno, Adamawa, and Yobe
-- **Youth Program Tracking** - Enrollment and completion data
+- **BAY States Coverage** - All 65 LGAs across Borno (27), Adamawa (21), and Yobe (17)
+- **10 Indicators** - Youth %, Literacy, Unemployment, Health, Ag Output, Displacement, Conflict, SMEs, Out-of-school Gap, Voter Gap
+- **4-Year Tracking** - 2022-2025 with trend analysis (2,600+ data points)
 - **AI Analysis** - Crisis forecasting, pattern detection, anomaly alerts
 - **Policy Briefs** - AI-generated policy recommendations
 - **State Comparison** - Side-by-side regional analysis
 
 ### Tech Stack
-- **Framework:** Next.js 16 (App Router)
-- **UI:** React 19 + TypeScript
+- **Framework:** Next.js 15.5 (App Router)
+- **UI:** React 18 + TypeScript
 - **Styling:** Tailwind CSS 4 + Shadcn/UI
 - **Charts:** Recharts
 - **Icons:** Lucide React
+- **Hosting:** Cloudflare Workers (via @opennextjs/cloudflare)
+- **Database:** Cloudflare D1 (SQLite)
+- **Cache:** Cloudflare KV
+- **Auth:** Firebase Authentication
+- **Data Source:** Google Sheets (unified BAY Sub-Regional Tracker)
 
 ---
 
@@ -101,18 +107,76 @@ HUMAID is a real-time humanitarian and youth data intelligence platform focused 
 - [x] Auth state persistence
 - [x] Defensive initialization (builds without env vars)
 
-### In Progress
-- [ ] Connect to Firestore database
-- [ ] Add user profile management
-- [ ] Add real data API endpoints
+### Cloudflare Migration (Complete)
+- [x] Migrate from Firebase Hosting to Cloudflare Workers
+- [x] Set up @opennextjs/cloudflare build pipeline
+- [x] Configure wrangler.toml with D1 + KV bindings
+- [x] Create per-state API routes (borno, adamawa, yobe)
+- [x] Implement KV cache layer (5-min TTL)
+- [x] Implement D1 persistent storage with fallback
+- [x] Admin sync button for manual data refresh
+- [x] Fix CI/CD pipeline (pnpm lockfile, build script recursion)
+
+### Unified Database Migration (In Progress)
+> Migrating from 3 separate state sheets to one unified Google Sheet with 6 tabs,
+> 65 LGAs, 10 indicators, 4 years of data (2,600+ data points).
+
+#### Phase 1: D1 Schema Migration ✅
+- [x] Design new unified schema (master_data, regional_overview, lga_profiles, trend_analysis, indicator_analysis, methodology)
+- [x] Write D1 migration SQL script (db/migration-v2.sql)
+- [x] Run migration against production D1 database
+- [x] Verify tables created correctly (9 tables total)
+
+#### Phase 2: Unified Sync Endpoint ✅
+- [x] Create unified sync library (lib/sheet-sync.ts) that fetches all 6 tabs by gid
+- [x] Parse CSV for each tab (MASTER_DATA, REGIONAL_OVERVIEW, LGA_PROFILES, TREND_ANALYSIS, INDICATOR_ANALYSIS, METHODOLOGY)
+- [x] Write parsed data to D1 tables (replace-all strategy per sync, batched in groups of 50)
+- [x] Write hot data to KV cache (5-min TTL, per-state + overview + profiles + master_all)
+- [x] Store sync metadata (last synced timestamp, row counts, errors)
+- [x] Update admin sync route (/api/admin/sync) to use unified syncAllTabs()
+- [x] Add error handling and partial-failure recovery (continues on per-tab failure)
+- [ ] Remove old per-state sync routes (/api/sheets/borno, adamawa, yobe) — after frontend rewire
+- [ ] Set up Cloudflare Cron Trigger for auto-sync (every 6 hours)
+
+#### Phase 3: Unified Data API ✅
+- [x] Create `/api/data` endpoint with query params (state, indicator, view)
+- [x] Implement `?view=overview` — returns regional KPIs from REGIONAL_OVERVIEW
+- [x] Implement `?state=borno` — returns all LGAs + indicators for a state from MASTER_DATA
+- [x] Implement `?view=trends` — returns trend analysis data
+- [x] Implement `?view=indicators&indicator=literacy` — returns cross-state indicator comparison
+- [x] Implement `?view=lga-profiles` — returns wide-format LGA snapshot
+- [x] Implement `?view=methodology` — returns data definitions and sources
+- [x] Implement `?view=master` — returns full master_data with optional state/indicator filters
+- [x] Add KV cache reads (serve from cache, fall back to D1)
+- [ ] Remove old per-state data routes — after frontend rewire
+
+#### Phase 4: Frontend Rewire
+- [ ] Update Dashboard page to fetch from `/api/data?view=overview`
+- [ ] Update KPI cards to use real regional KPIs (not hardcoded)
+- [ ] Update Countries/States listing page to use unified data
+- [ ] Update State detail pages ([code]) to fetch from `/api/data?state={code}`
+- [ ] Update Comparison page to fetch cross-state indicator data
+- [ ] Update Analysis page to use trend analysis data
+- [ ] Update Policy Briefs page with real insights from TREND_ANALYSIS
+- [ ] Replace all hardcoded mock data in lib/bay-data.ts
+- [ ] Update admin panel sync button to call new `/api/sync`
+- [ ] Add "Last synced" timestamp display on dashboard
+- [ ] Verify all charts and tables render correctly with real data
+
+#### Phase 5: Testing & Polish
+- [ ] End-to-end test: update Google Sheet → sync → verify frontend reflects changes
+- [ ] Verify KV cache serves data within <50ms at edge
+- [ ] Verify D1 fallback works when KV cache misses
+- [ ] Test auto-sync cron trigger fires correctly
+- [ ] Load test with concurrent requests
+- [ ] Update METHODOLOGY tab display in frontend
 
 ### Future Enhancements
-- [ ] Add map visualization for LGAs
-- [ ] Implement data export functionality
-- [ ] Add notification system
-- [ ] Create admin panel for data management
-- [ ] Add multi-language support
-- [ ] Implement data caching strategy
+- [ ] Add map visualization for LGAs (65 LGAs across 3 states)
+- [ ] Implement data export functionality (CSV/PDF)
+- [ ] Add notification system (alerts on trend changes)
+- [ ] Add user profile management
+- [ ] Add multi-language support (English/Hausa)
 - [ ] Add offline support (PWA)
 - [ ] Create mobile app version
 
@@ -154,20 +218,44 @@ BAY-STATE-DATABASE/
 
 ## 📊 Data Structure
 
-### BAY States Covered
-| State | Code | LGAs | Population | Humanitarian Need |
-|-------|------|------|------------|-------------------|
-| Borno | BN | 8 | 4.25M | 3.32M |
-| Adamawa | AD | 8 | 3.79M | 2.15M |
-| Yobe | YB | 7 | 2.43M | 1.78M |
+### Unified Google Sheet (Source of Truth)
+**Sheet:** BAY Sub-Regional Youth Peace & Security Tracker
+**Tabs:** 6 | **LGAs:** 65 | **Indicators:** 10 | **Years:** 2022-2025 | **Data Points:** 2,600+
 
-### Key Metrics Tracked
-- People in Need
-- Displaced Persons
-- Active Programs
-- Youth Unemployment Rate
-- Food Insecurity Index
-- Severity Score (0-100)
+| Tab | GID | Rows | Purpose |
+|-----|-----|------|---------|
+| MASTER_DATA | 1246866788 | 650 | Core dataset — 65 LGAs x 10 indicators x 4 years |
+| REGIONAL_OVERVIEW | 909228715 | 40 | KPIs, zone comparisons, progress scorecards |
+| LGA_PROFILES | 436378337 | 71 | Wide-format 2025 snapshot per LGA |
+| TREND_ANALYSIS | 2054908454 | 54 | Narrative analysis, insights per state |
+| INDICATOR_ANALYSIS | 1323234703 | 266 | Per-indicator deep dives with rankings |
+| METHODOLOGY | 555539939 | 41 | Definitions, sources, aggregation rules |
+
+### BAY States Covered
+| State | Code | LGAs | Risk Zones |
+|-------|------|------|------------|
+| Borno | BN | 27 | 14 High / 5 Medium / 8 Low |
+| Adamawa | AD | 21 | 7 High / 7 Medium / 7 Low |
+| Yobe | YB | 17 | 6 High / 6 Medium / 5 Low |
+
+### 10 Indicators Tracked
+| Indicator | Type | Unit |
+|-----------|------|------|
+| Youth % Population | Demographic | % |
+| Literacy Rate | Education | % |
+| Unemployment Rate | Economic | % |
+| Health Facilities | Health | Count |
+| Ag Output | Economic | Naira (N) |
+| Displacement | Humanitarian | Count |
+| Conflict Incidents | Security | Count |
+| SMEs Registered | Economic | Count |
+| Out-of-School Gap | Education | % |
+| Voter Card Gap | Governance | % |
+
+### Cloudflare Storage
+- **D1 (SQLite):** Persistent storage — all 6 tabs synced to relational tables
+- **KV:** Edge cache — 5-min TTL for hot reads
+- **Sync:** Manual (admin button) + Cron Trigger (every 6 hours)
 
 ---
 
@@ -191,11 +279,13 @@ pnpm start
 
 ## 📝 Notes
 
-- All BAY state data is currently mock data in `/lib/bay-data.ts`
-- **Authentication is now powered by Firebase** (email/password, Google, GitHub)
+- **Data source:** Unified Google Sheet (BAY Sub-Regional Youth Peace & Security Tracker)
+- **Authentication:** Firebase (email/password, Google, GitHub)
+- **Hosting:** Cloudflare Workers via @opennextjs/cloudflare
+- **Database:** Cloudflare D1 (persistent) + KV (edge cache)
 - The platform is designed for dark mode by default
 - Charts use Recharts with custom dark theme styling
-- Environment variables required for Firebase (see `.env.example`)
+- Environment variables required for Firebase (see `.env.local`)
 
 ---
 
@@ -208,4 +298,6 @@ pnpm start
 | 0.3.0 | Feb 8, 2026 | Glassmorphism auth pages - beautiful signin/signup with animations |
 | 0.4.0 | Feb 8, 2026 | Micro-interactions - card hover, animated counters, sparklines, a11y |
 | 0.5.0 | Feb 8, 2026 | Firebase authentication - email/password, Google, GitHub OAuth |
+| 0.6.0 | Mar 27, 2026 | Migrated to Cloudflare Workers + D1 + KV, per-state sheet sync |
+| 0.7.0 | Mar 28, 2026 | Unified database migration — single sheet, 65 LGAs, 10 indicators |
 
