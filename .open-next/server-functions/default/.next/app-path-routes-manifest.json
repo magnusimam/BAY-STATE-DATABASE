@@ -1,6 +1,6 @@
 {
-  "/api/admin/sync/route": "/api/admin/sync",
   "/_not-found/page": "/_not-found",
+  "/api/admin/sync/route": "/api/admin/sync",
   "/api/cron/route": "/api/cron",
   "/api/data/route": "/api/data",
   "/api/editor/content/route": "/api/editor/content",
@@ -9,13 +9,14 @@
   "/auth/signup/page": "/auth/signup",
   "/page": "/",
   "/admin/content/page": "/admin/content",
-  "/admin/theme/page": "/admin/theme",
-  "/admin/page": "/admin",
   "/admin/sections/page": "/admin/sections",
-  "/dashboard/comparison/page": "/dashboard/comparison",
-  "/dashboard/countries/[code]/page": "/dashboard/countries/[code]",
+  "/admin/page": "/admin",
   "/dashboard/analysis/page": "/dashboard/analysis",
+  "/admin/theme/page": "/admin/theme",
+  "/dashboard/comparison/page": "/dashboard/comparison",
   "/dashboard/countries/page": "/dashboard/countries",
+  "/dashboard/countries/[code]/page": "/dashboard/countries/[code]",
   "/dashboard/page": "/dashboard",
-  "/dashboard/policy-briefs/page": "/dashboard/policy-briefs"
+  "/dashboard/policy-briefs/page": "/dashboard/policy-briefs",
+  "/dashboard/trends/page": "/dashboard/trends"
 }

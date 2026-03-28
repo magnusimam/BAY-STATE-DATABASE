@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
   BarChart,
@@ -15,351 +13,348 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
 } from 'recharts'
 import {
-  Send,
-  Loader2,
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   Lightbulb,
   Brain,
-  ArrowRight,
-  Copy,
-  ThumbsUp,
-  ThumbsDown,
+  Loader2,
+  Activity,
+  BarChart3,
+  Target,
 } from 'lucide-react'
-
-// Mock analysis results
-const analysisResults = {
-  'crisis-forecast': {
-    title: 'Crisis Forecast - Next 90 Days',
-    description: 'AI-powered prediction model analyzing crisis patterns',
-    insights: [
-      'High probability of humanitarian need increase in South Asia (78% confidence)',
-      'Expected surge in displacement from conflict-affected regions',
-      'Seasonal factors suggest intensification of food insecurity',
-      'Regional stability improving in Central Africa (+12% confidence)',
-    ],
-    chart: [
-      { week: 'W1', predicted: 85, actual: 82, confidence: 92 },
-      { week: 'W2', predicted: 88, actual: 85, confidence: 90 },
-      { week: 'W3', predicted: 92, actual: 89, confidence: 88 },
-      { week: 'W4', predicted: 95, actual: 91, confidence: 85 },
-      { week: 'W5', predicted: 98, actual: null, confidence: 82 },
-      { week: 'W6', predicted: 101, actual: null, confidence: 79 },
-    ],
-  },
-  'pattern-detection': {
-    title: 'Hidden Pattern Detection',
-    description: 'Unsupervised ML identifying emerging patterns in data',
-    insights: [
-      'Cluster 1: Youth unemployment correlates strongly with humanitarian need (r=0.87)',
-      'Cluster 2: Climate factors appear linked to displacement patterns',
-      'Cluster 3: Education access inversely correlates with program enrollment',
-      'Emerging pattern: Regional economic indices predict crisis severity 6 months ahead',
-    ],
-    chart: [
-      { factor: 'Unemployment', score: 87, weight: 34 },
-      { factor: 'Climate', score: 72, weight: 28 },
-      { factor: 'Education', score: 65, weight: 20 },
-      { factor: 'GDP', score: 58, weight: 18 },
-    ],
-  },
-  'anomaly-detection': {
-    title: 'Anomaly Detection',
-    description: 'Identifying unusual patterns and outliers in data',
-    insights: [
-      'Sudden 15% spike in humanitarian need detected in West Africa (Day 45)',
-      'Unusual program enrollment patterns in South Asia flagged for review',
-      'Data quality issue detected: Missing crisis reports in 3 regions',
-      'Positive anomaly: Crisis resolution rate improved 22% in East Africa',
-    ],
-    chart: [
-      { day: 'D1', normal: 50, anomaly: 48 },
-      { day: 'D7', normal: 52, anomaly: 50 },
-      { day: 'D14', normal: 48, anomaly: 55 },
-      { day: 'D21', normal: 51, anomaly: 52 },
-      { day: 'D28', normal: 49, anomaly: 65 },
-      { day: 'D35', normal: 50, anomaly: 51 },
-    ],
-  },
-}
-
-type AnalysisType = keyof typeof analysisResults
-
-interface Message {
-  id: string
-  type: 'user' | 'assistant'
-  content: string
-  analysis?: AnalysisType
-  timestamp: Date
-}
-
-// Suggested queries
-const suggestedQueries = [
-  'What are the crisis forecasts for the next 90 days?',
-  'Identify hidden patterns in humanitarian data',
-  'Detect anomalies in recent reports',
-  'Which regions show highest improvement potential?',
-]
-
-// Analysis result card
-function AnalysisCard({
-  analysis,
-  type,
-}: {
-  analysis: (typeof analysisResults)[keyof typeof analysisResults]
-  type: AnalysisType
-}) {
-  const data = analysisResults[type]
-  const chartData = data.chart as any[]
-
-  return (
-    <Card className="bg-card border-border p-6 space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-bold text-lg">{data.title}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{data.description}</p>
-          </div>
-          <Badge className="bg-accent/10 text-accent border-accent/20">AI Generated</Badge>
-        </div>
-      </div>
-
-      {/* Chart */}
-      {type === 'crisis-forecast' && (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-            <XAxis dataKey="week" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
-            <Line type="monotone" dataKey="predicted" stroke="#f4b942" strokeWidth={2} name="Predicted" />
-            <Line type="monotone" dataKey="actual" stroke="#6ec6e8" strokeWidth={2} name="Actual" />
-          </LineChart>
-        </ResponsiveContainer>
-      )}
-
-      {type === 'pattern-detection' && (
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-            <XAxis dataKey="factor" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
-            <Bar dataKey="score" fill="#f4b942" name="Correlation Score" />
-          </BarChart>
-        </ResponsiveContainer>
-      )}
-
-      {type === 'anomaly-detection' && (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-            <XAxis dataKey="day" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
-            <Line type="monotone" dataKey="normal" stroke="#8b5cf6" strokeWidth={2} name="Normal" />
-            <Line type="monotone" dataKey="anomaly" stroke="#f97316" strokeWidth={2} name="Anomaly" />
-          </LineChart>
-        </ResponsiveContainer>
-      )}
-
-      {/* Key Insights */}
-      <div className="space-y-3 pt-6 border-t border-border">
-        <h4 className="font-bold text-sm">Key Insights</h4>
-        {data.insights.map((insight, idx) => (
-          <div key={idx} className="flex gap-3">
-            <Lightbulb className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-foreground">{insight}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 pt-4 border-t border-border">
-        <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
-          <Copy className="h-4 w-4" />
-          Copy
-        </Button>
-        <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
-          <ThumbsUp className="h-4 w-4" />
-          Helpful
-        </Button>
-        <Button variant="outline" size="sm" className="border-border gap-2 bg-transparent">
-          <ThumbsDown className="h-4 w-4" />
-          Not Helpful
-        </Button>
-      </div>
-    </Card>
-  )
-}
+import type {
+  MasterRow,
+  IndicatorAnalysisRow,
+  TrendAnalysisRow,
+  ApiResponse,
+} from '@/lib/api-types'
 
 export default function Analysis() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [masterRows, setMasterRows] = useState<MasterRow[]>([])
+  const [indicatorRows, setIndicatorRows] = useState<IndicatorAnalysisRow[]>([])
+  const [trendRows, setTrendRows] = useState<TrendAnalysisRow[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleSendMessage = async (query?: string) => {
-    const text = query || input
-    if (!text.trim()) return
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/data?view=master').then(r => r.json()),
+      fetch('/api/data?view=indicators').then(r => r.json()),
+      fetch('/api/data?view=trends').then(r => r.json()),
+    ])
+      .then(([master, indicators, trends]: [
+        ApiResponse<MasterRow>,
+        ApiResponse<IndicatorAnalysisRow>,
+        ApiResponse<TrendAnalysisRow>,
+      ]) => {
+        setMasterRows(master.data ?? [])
+        setIndicatorRows(indicators.data ?? [])
+        setTrendRows(trends.data ?? [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: text,
-      timestamp: new Date(),
+  // KPI summaries
+  const kpis = useMemo(() => {
+    if (!masterRows.length) return null
+    const states = ['Borno', 'Adamawa', 'Yobe']
+    const totalLGAs = new Set(masterRows.map(r => r.lga)).size
+
+    const displacement2025 = masterRows
+      .filter(r => r.indicator === 'Displacement')
+      .reduce((s, r) => s + r.y2025, 0)
+    const displacement2022 = masterRows
+      .filter(r => r.indicator === 'Displacement')
+      .reduce((s, r) => s + r.y2022, 0)
+    const displacementChange = displacement2022 > 0
+      ? ((displacement2025 - displacement2022) / displacement2022 * 100).toFixed(1)
+      : '0'
+
+    const conflict2025 = masterRows
+      .filter(r => r.indicator === 'Conflict Incidents')
+      .reduce((s, r) => s + r.y2025, 0)
+
+    const improving = masterRows.filter(r => r.trend.toLowerCase().includes('improv')).length
+    const declining = masterRows.filter(r => r.trend.toLowerCase().includes('declin')).length
+    const stable = masterRows.length - improving - declining
+
+    return { totalLGAs, displacement2025, displacementChange, conflict2025, improving, declining, stable }
+  }, [masterRows])
+
+  // Radar chart: average indicators per state (normalized 0-100)
+  const radarData = useMemo(() => {
+    const indicators = [...new Set(masterRows.map(r => r.indicator))]
+    return indicators.map(ind => {
+      const entry: Record<string, string | number> = { indicator: ind.replace(/ /g, '\n') }
+      for (const state of ['Borno', 'Adamawa', 'Yobe']) {
+        const rows = masterRows.filter(r => r.indicator === ind && r.state === state)
+        const avg = rows.length ? rows.reduce((s, r) => s + r.y2025, 0) / rows.length : 0
+        entry[state] = +avg.toFixed(1)
+      }
+      return entry
+    })
+  }, [masterRows])
+
+  // Risk zone distribution
+  const riskZoneData = useMemo(() => {
+    const zones = new Map<string, { high: number; medium: number; low: number }>()
+    const lgas = new Map<string, MasterRow>()
+    for (const r of masterRows) {
+      if (!lgas.has(r.lga)) lgas.set(r.lga, r)
     }
+    for (const [, r] of lgas) {
+      const s = zones.get(r.state) ?? { high: 0, medium: 0, low: 0 }
+      const z = r.risk_zone.toLowerCase()
+      if (z.includes('high')) s.high++
+      else if (z.includes('medium')) s.medium++
+      else s.low++
+      zones.set(r.state, s)
+    }
+    return [...zones.entries()].map(([state, counts]) => ({
+      state,
+      ...counts,
+    }))
+  }, [masterRows])
 
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
-    setLoading(true)
+  // Anomalies: indicators with extreme change_pct
+  const anomalies = useMemo(() => {
+    return [...masterRows]
+      .filter(r => Math.abs(r.change_pct) > 30)
+      .sort((a, b) => Math.abs(b.change_pct) - Math.abs(a.change_pct))
+      .slice(0, 8)
+  }, [masterRows])
 
-    // Simulate AI response
-    setTimeout(() => {
-      let analysisType: AnalysisType = 'crisis-forecast'
-      let response = ''
-
-      if (text.toLowerCase().includes('forecast')) {
-        analysisType = 'crisis-forecast'
-        response = 'Based on historical data and machine learning models, I\'ve generated a 90-day crisis forecast. The analysis shows increasing humanitarian need in South Asia with 78% confidence, while Central Africa shows signs of improvement.'
-      } else if (text.toLowerCase().includes('pattern')) {
-        analysisType = 'pattern-detection'
-        response = 'I\'ve identified several key patterns in the data: Youth unemployment strongly correlates with humanitarian need (r=0.87), climate factors are linked to displacement patterns, and educational access inversely correlates with program enrollment.'
-      } else if (text.toLowerCase().includes('anomal')) {
-        analysisType = 'anomaly-detection'
-        response = 'Anomaly detection has identified several unusual patterns: A 15% spike in West Africa, unusual enrollment patterns in South Asia, and some data quality issues that need attention. However, there\'s also a positive anomaly showing 22% improvement in East Africa.'
-      } else {
-        analysisType = 'crisis-forecast'
-        response = 'I\'ve analyzed the data and generated insights. The crisis forecast model shows predicted trends for the coming weeks with confidence intervals. Based on current patterns, we recommend monitoring the regions flagged in the analysis.'
+  // Patterns: group indicator_analysis by indicator, showing top/bottom ranked
+  const patterns = useMemo(() => {
+    const byIndicator = new Map<string, IndicatorAnalysisRow[]>()
+    for (const row of indicatorRows) {
+      const existing = byIndicator.get(row.indicator) ?? []
+      existing.push(row)
+      byIndicator.set(row.indicator, existing)
+    }
+    return [...byIndicator.entries()].slice(0, 5).map(([indicator, rows]) => {
+      const sorted = [...rows].sort((a, b) => a.rank - b.rank)
+      return {
+        indicator,
+        top3: sorted.slice(0, 3),
+        bottom3: sorted.slice(-3).reverse(),
+        avgChange: rows.length
+          ? +(rows.reduce((s, r) => s + r.change_pct, 0) / rows.length).toFixed(1)
+          : 0,
       }
+    })
+  }, [indicatorRows])
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: response,
-        analysis: analysisType,
-        timestamp: new Date(),
-      }
-
-      setMessages(prev => [...prev, assistantMessage])
-      setLoading(false)
-    }, 1500)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    )
   }
 
   return (
-    <div className="p-6 space-y-8 max-w-6xl mx-auto">
+    <div className="p-6 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      {messages.length === 0 && (
-        <div className="text-center space-y-4 py-12">
-          <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-            <Brain className="h-8 w-8 text-accent" />
-          </div>
-          <h1 className="text-4xl font-bold">AI Analysis Engine</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Leverage machine learning to discover insights in humanitarian data. Ask questions about forecasts, patterns, and anomalies.
-          </p>
+      <div className="text-center space-y-4 py-6">
+        <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
+          <Brain className="h-8 w-8 text-accent" />
+        </div>
+        <h1 className="text-4xl font-bold">AI Analysis Engine</h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Data-driven analysis across {kpis?.totalLGAs ?? 65} LGAs, 10 indicators, and 4 years of BAY States humanitarian data.
+        </p>
+      </div>
+
+      {/* KPI Cards */}
+      {kpis && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-card border-border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Displacement (2025)</p>
+            <p className="text-2xl font-bold">{kpis.displacement2025.toLocaleString()}</p>
+            <p className={`text-xs ${Number(kpis.displacementChange) > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              {Number(kpis.displacementChange) > 0 ? '+' : ''}{kpis.displacementChange}% since 2022
+            </p>
+          </Card>
+          <Card className="bg-card border-border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Conflict Incidents (2025)</p>
+            <p className="text-2xl font-bold">{kpis.conflict2025.toLocaleString()}</p>
+          </Card>
+          <Card className="bg-card border-border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Improving Indicators</p>
+            <p className="text-2xl font-bold text-emerald-400">{kpis.improving}</p>
+            <p className="text-xs text-muted-foreground">of {masterRows.length} tracked</p>
+          </Card>
+          <Card className="bg-card border-border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Declining Indicators</p>
+            <p className="text-2xl font-bold text-red-400">{kpis.declining}</p>
+            <p className="text-xs text-muted-foreground">{kpis.stable} stable</p>
+          </Card>
         </div>
       )}
 
-      {/* Messages */}
-      <div className="space-y-6">
-        {messages.map(message => (
-          <div key={message.id} className="space-y-3">
-            {message.type === 'user' ? (
-              <div className="flex justify-end">
-                <Card className="bg-accent text-accent-foreground max-w-2xl">
-                  <div className="p-4">
-                    <p className="text-sm">{message.content}</p>
-                    <p className="text-xs opacity-75 mt-2">
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
-                </Card>
+      {/* Risk Zone Distribution + Radar Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-card border-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-5 w-5 text-accent" />
+            <h2 className="font-bold text-lg">Risk Zone Distribution</h2>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={riskZoneData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+              <XAxis dataKey="state" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748' }} />
+              <Legend />
+              <Bar dataKey="high" fill="#ef4444" name="High Risk" stackId="a" />
+              <Bar dataKey="medium" fill="#f4b942" name="Medium Risk" stackId="a" />
+              <Bar dataKey="low" fill="#22c55e" name="Low Risk" stackId="a" />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="bg-card border-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="h-5 w-5 text-accent" />
+            <h2 className="font-bold text-lg">State Indicator Profile (2025)</h2>
+          </div>
+          {radarData.length > 0 && (
+            <ResponsiveContainer width="100%" height={280}>
+              <RadarChart data={radarData.slice(0, 6)}>
+                <PolarGrid stroke="#2d3748" />
+                <PolarAngleAxis dataKey="indicator" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <PolarRadiusAxis tick={{ fill: '#64748b', fontSize: 10 }} />
+                <Radar name="Borno" dataKey="Borno" stroke="#f4b942" fill="#f4b942" fillOpacity={0.15} />
+                <Radar name="Adamawa" dataKey="Adamawa" stroke="#6ec6e8" fill="#6ec6e8" fillOpacity={0.15} />
+                <Radar name="Yobe" dataKey="Yobe" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.15} />
+                <Legend />
+              </RadarChart>
+            </ResponsiveContainer>
+          )}
+        </Card>
+      </div>
+
+      {/* Anomaly Detection */}
+      <Card className="bg-card border-border p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle className="h-5 w-5 text-orange-400" />
+          <h2 className="font-bold text-lg">Anomaly Detection</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-6">
+          LGA-indicator pairs with &gt;30% change over 4 years flagged for review
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {anomalies.map((row, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border"
+            >
+              <div className="min-w-0">
+                <p className="font-medium text-sm truncate">{row.lga}</p>
+                <p className="text-xs text-muted-foreground">{row.state} — {row.indicator}</p>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="h-8 w-8 rounded-full bg-secondary/50 flex items-center justify-center flex-shrink-0">
-                    <Brain className="h-5 w-5 text-accent" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground mb-4">{message.content}</p>
-                    {message.analysis && <AnalysisCard analysis={analysisResults[message.analysis]} type={message.analysis} />}
-                  </div>
+              <Badge
+                variant="outline"
+                className={
+                  row.change_pct > 0
+                    ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                }
+              >
+                {row.change_pct > 0 ? '+' : ''}{row.change_pct.toFixed(1)}%
+              </Badge>
+            </div>
+          ))}
+          {anomalies.length === 0 && (
+            <p className="text-muted-foreground text-sm col-span-2 text-center py-4">
+              No significant anomalies detected
+            </p>
+          )}
+        </div>
+      </Card>
+
+      {/* Pattern Detection — Top/Bottom by Indicator */}
+      <Card className="bg-card border-border p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Activity className="h-5 w-5 text-accent" />
+          <h2 className="font-bold text-lg">Pattern Detection — Indicator Rankings</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-6">
+          Top and bottom performing LGAs per indicator based on ranking data
+        </p>
+        <div className="space-y-6">
+          {patterns.map(({ indicator, top3, bottom3, avgChange }) => (
+            <div key={indicator} className="p-4 rounded-lg bg-secondary/20 border border-border">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-sm">{indicator}</h3>
+                <Badge variant="outline" className={avgChange >= 0 ? 'text-emerald-400 border-emerald-500/20' : 'text-red-400 border-red-500/20'}>
+                  Avg change: {avgChange > 0 ? '+' : ''}{avgChange}%
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-emerald-400 font-medium mb-2 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> Top Performing
+                  </p>
+                  {top3.map((r, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">
+                      #{r.rank} {r.lga} ({r.state}) — {r.y2025.toLocaleString()}
+                    </p>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-xs text-red-400 font-medium mb-2 flex items-center gap-1">
+                    <TrendingDown className="h-3 w-3" /> Lowest Performing
+                  </p>
+                  {bottom3.map((r, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">
+                      #{r.rank} {r.lga} ({r.state}) — {r.y2025.toLocaleString()}
+                    </p>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
-        ))}
-
-        {loading && (
-          <div className="flex gap-3">
-            <div className="h-8 w-8 rounded-full bg-secondary/50 flex items-center justify-center flex-shrink-0">
-              <Loader2 className="h-5 w-5 text-accent animate-spin" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">AI is analyzing...</p>
-            </div>
-          </div>
-        )}
-      </div>
+          ))}
+          {patterns.length === 0 && (
+            <p className="text-muted-foreground text-sm text-center py-4">No indicator analysis data available</p>
+          )}
+        </div>
+      </Card>
 
-      {/* Suggested queries */}
-      {messages.length === 0 && (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Try asking:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {suggestedQueries.map((query, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSendMessage(query)}
-                className="p-4 rounded-lg border border-border bg-card hover:bg-secondary/50 transition text-left text-sm text-foreground"
-              >
-                <p className="flex items-center gap-2">
-                  <ArrowRight className="h-4 w-4 text-accent" />
-                  {query}
-                </p>
-              </button>
+      {/* Narrative Insights from trend_analysis */}
+      {trendRows.length > 0 && (
+        <Card className="bg-card border-border p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="h-5 w-5 text-accent" />
+            <h2 className="font-bold text-lg">Key Insights</h2>
+          </div>
+          <div className="space-y-3 mt-4">
+            {trendRows.slice(0, 8).map((row, idx) => (
+              <div key={idx} className="flex gap-3 p-3 rounded-lg bg-secondary/20">
+                <Lightbulb className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+                <div>
+                  {row.metric && (
+                    <p className="text-xs font-medium text-accent mb-1">
+                      {row.metric} {row.state && `— ${row.state}`}
+                    </p>
+                  )}
+                  <p className="text-sm text-foreground">{row.content}</p>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
-
-      {/* Input area - sticky at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex gap-3">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask about data patterns, forecasts, anomalies..."
-              disabled={loading}
-              className="bg-secondary border-border focus:border-accent"
-            />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={loading || !input.trim()}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Spacing for fixed input */}
-      {messages.length > 0 && <div className="h-24" />}
     </div>
   )
 }

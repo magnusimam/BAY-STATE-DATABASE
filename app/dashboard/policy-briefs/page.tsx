@@ -145,14 +145,13 @@ function BriefCreationModal({
             <label className="text-sm font-medium">Region</label>
             <Select value={selectedRegion} onValueChange={setSelectedRegion}>
               <SelectTrigger className="bg-secondary border-border">
-                <SelectValue placeholder="Select region" />
+                <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
-                <SelectItem value="south-asia">South Asia</SelectItem>
-                <SelectItem value="west-africa">West Africa</SelectItem>
-                <SelectItem value="east-africa">East Africa</SelectItem>
-                <SelectItem value="mena">MENA Region</SelectItem>
-                <SelectItem value="se-asia">Southeast Asia</SelectItem>
+                <SelectItem value="bay">BAY Combined</SelectItem>
+                <SelectItem value="borno">Borno</SelectItem>
+                <SelectItem value="adamawa">Adamawa</SelectItem>
+                <SelectItem value="yobe">Yobe</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -322,29 +321,64 @@ export default function PolicyBriefs() {
 
   const livePolicyBriefs = useMemo(() => {
     if (!allRows.length) return policyBriefs
-    const bornoRows = allRows.filter(r => r.state === 'Borno')
-    const summary = computeSummary(bornoRows)
-    const unemployRows = bornoRows.filter(r => r.indicator === 'Unemployment Rate')
-    const avgUnemployment = unemployRows.length
-      ? +(unemployRows.reduce((s, r) => s + r.y2025, 0) / unemployRows.length).toFixed(1)
-      : 48.2
-    const totalConflict = summary.totalConflict2025.toLocaleString()
-    const totalDisplaced = summary.totalDisplacement2025.toLocaleString()
-    const totalLGAs = summary.totalLGAs
-    return policyBriefs.map(b =>
-      b.id === 1
-        ? {
-            ...b,
-            keyPoints: [
-              `${totalLGAs} LGAs tracked across High, Medium & Low Risk zones`,
-              `${totalDisplaced} displacement incidents recorded across high-risk LGAs (2025)`,
-              `${totalConflict} conflict incidents logged in 2025 tracker`,
-              `Average youth unemployment at ${avgUnemployment}% — live from unified tracker`,
-            ],
-            summary: `Borno State's performance tracker (2022–2025) covers ${totalLGAs} LGAs across three risk zones. In 2025, ${totalConflict} conflict incidents were recorded alongside ${totalDisplaced} displacement cases. Youth unemployment averages ${avgUnemployment}%, with the highest rates concentrated in High Risk LGAs. Immediate interventions targeting displacement response and economic resilience are critical.`,
-          }
-        : b
-    )
+
+    function stateStats(state: string) {
+      const rows = allRows.filter(r => r.state === state)
+      const summary = computeSummary(rows)
+      const unemployRows = rows.filter(r => r.indicator === 'Unemployment Rate')
+      const avgUnemployment = unemployRows.length
+        ? +(unemployRows.reduce((s, r) => s + r.y2025, 0) / unemployRows.length).toFixed(1)
+        : 0
+      return { ...summary, avgUnemployment }
+    }
+
+    const borno = stateStats('Borno')
+    const yobe = stateStats('Yobe')
+    const bayAll = computeSummary(allRows)
+    const bayUnemploy = allRows.filter(r => r.indicator === 'Unemployment Rate')
+    const bayAvgUnemp = bayUnemploy.length
+      ? +(bayUnemploy.reduce((s, r) => s + r.y2025, 0) / bayUnemploy.length).toFixed(1)
+      : 0
+
+    return policyBriefs.map(b => {
+      if (b.id === 1) {
+        return {
+          ...b,
+          keyPoints: [
+            `${borno.totalLGAs} LGAs tracked across High, Medium & Low Risk zones`,
+            `${borno.totalDisplacement2025.toLocaleString()} displacement incidents recorded across high-risk LGAs (2025)`,
+            `${borno.totalConflict2025.toLocaleString()} conflict incidents logged in 2025 tracker`,
+            `Average youth unemployment at ${borno.avgUnemployment}% — live from unified tracker`,
+          ],
+          summary: `Borno State's performance tracker (2022-2025) covers ${borno.totalLGAs} LGAs across three risk zones. In 2025, ${borno.totalConflict2025.toLocaleString()} conflict incidents were recorded alongside ${borno.totalDisplacement2025.toLocaleString()} displacement cases. Youth unemployment averages ${borno.avgUnemployment}%, with the highest rates in High Risk LGAs.`,
+        }
+      }
+      if (b.id === 2) {
+        return {
+          ...b,
+          keyPoints: [
+            `Youth unemployment across BAY averaging ${bayAvgUnemp}%`,
+            `${bayAll.totalDisplacement2025.toLocaleString()} total displacement cases across ${bayAll.totalLGAs} LGAs`,
+            `${bayAll.totalConflict2025.toLocaleString()} conflict incidents recorded BAY-wide (2025)`,
+            `Vocational training programs show 4:1 community ROI`,
+          ],
+          summary: `BAY States face a critical youth employment crisis with an average unemployment rate of ${bayAvgUnemp}%. Across ${bayAll.totalLGAs} LGAs, ${bayAll.totalDisplacement2025.toLocaleString()} displacement cases and ${bayAll.totalConflict2025.toLocaleString()} conflict incidents were recorded in 2025. Targeted investment in vocational training and digital skills is essential.`,
+        }
+      }
+      if (b.id === 3) {
+        return {
+          ...b,
+          keyPoints: [
+            `${yobe.totalLGAs} LGAs tracked in Yobe across risk zones`,
+            `${yobe.totalDisplacement2025.toLocaleString()} displacement cases in 2025`,
+            `${yobe.totalConflict2025.toLocaleString()} conflict incidents logged`,
+            `Youth unemployment at ${yobe.avgUnemployment}% across Yobe LGAs`,
+          ],
+          summary: `Yobe State faces compounding humanitarian challenges with ${yobe.totalDisplacement2025.toLocaleString()} displacement cases and ${yobe.totalConflict2025.toLocaleString()} conflict incidents in 2025 across ${yobe.totalLGAs} LGAs. Climate stress and food insecurity intensify in semi-arid zones, requiring targeted adaptation programs.`,
+        }
+      }
+      return b
+    })
   }, [allRows])
 
   const filteredBriefs = livePolicyBriefs.filter(brief => {

@@ -3,7 +3,7 @@
 
 **Project:** HUMAID - Humanitarian & Youth Data Intelligence Platform  
 **Focus:** BAY States (Borno, Adamawa, Yobe) - Northeast Nigeria  
-**Last Updated:** March 28, 2026
+**Last Updated:** March 28, 2026 (v0.8.0)
 
 ---
 
@@ -136,7 +136,8 @@ HUMAID is a real-time humanitarian and youth data intelligence platform focused 
 - [x] Update admin sync route (/api/admin/sync) to use unified syncAllTabs()
 - [x] Add error handling and partial-failure recovery (continues on per-tab failure)
 - [ ] Remove old per-state sync routes (/api/sheets/borno, adamawa, yobe) — after frontend rewire
-- [ ] Set up Cloudflare Cron Trigger for auto-sync (every 6 hours)
+- [x] Set up Cloudflare Cron Trigger for auto-sync (every 6 hours)
+- [x] Secure cron endpoint — blocks public access, requires cf-cron header or CRON_SECRET
 
 #### Phase 3: Unified Data API ✅
 - [x] Create `/api/data` endpoint with query params (state, indicator, view)
@@ -162,9 +163,19 @@ HUMAID is a real-time humanitarian and youth data intelligence platform focused 
 - [x] Add "Last synced" timestamp display on dashboard (from sync_meta)
 - [x] Created shared types library (lib/api-types.ts) with helpers
 - [ ] Replace remaining hardcoded mock data in lib/bay-data.ts (used as fallback only)
-- [ ] Update Analysis page to use trend analysis data (currently hardcoded simulation)
+- [x] Update Analysis page to use real data (indicator rankings, anomaly detection, radar charts)
+- [x] Create Trend Analysis page (`/dashboard/trends`) with real data from unified API
+- [x] Wire all 3 policy briefs to live data (Borno, BAY Combined, Yobe)
 
-#### Phase 5: Testing & Polish
+#### Phase 5: Hardening & Cleanup ✅
+- [x] Add error boundary (error.tsx) to dashboard routes for graceful error handling
+- [x] Remove debug console.log statements from auth (Google sign-in flow)
+- [x] Delete unused legacy file (lib/countries-data.ts)
+- [x] Fix Firebase SSR crash — guard initialization with `typeof window !== 'undefined'`
+- [x] Add TrendAnalysisRow and IndicatorAnalysisRow types to lib/api-types.ts
+- [x] Fix policy brief region selector to use BAY states instead of generic regions
+
+#### Phase 6: Testing & Polish
 - [ ] End-to-end test: update Google Sheet → sync → verify frontend reflects changes
 - [ ] Verify KV cache serves data within <50ms at edge
 - [ ] Verify D1 fallback works when KV cache misses
@@ -197,20 +208,26 @@ BAY-STATE-DATABASE/
 │   └── dashboard/
 │       ├── layout.tsx        # Dashboard layout with sidebar
 │       ├── page.tsx          # Dashboard overview
-│       ├── analysis/page.tsx # AI Analysis
+│       ├── error.tsx          # Error boundary
+│       ├── analysis/page.tsx # AI Analysis (real data)
 │       ├── comparison/page.tsx # Compare states
 │       ├── countries/        # BAY States listing
 │       │   ├── page.tsx
 │       │   └── [code]/page.tsx # State details
+│       ├── trends/page.tsx   # Trend Analysis (real data)
 │       └── policy-briefs/page.tsx
 ├── components/
 │   ├── ui/                   # Shadcn UI components
 │   ├── CountryCard.tsx
 │   └── theme-provider.tsx
 ├── lib/
+│   ├── api-types.ts          # Shared TypeScript types for API responses
+│   ├── auth-context.tsx      # Firebase auth React context
 │   ├── bay-data.ts           # BAY States data
 │   ├── bay-ticker.ts         # Ticker utilities
-│   ├── countries-data.ts     # Legacy (deprecated)
+│   ├── cloudflare.ts         # D1/KV helpers
+│   ├── firebase.ts           # Firebase client init (browser-only)
+│   ├── sheet-sync.ts         # Unified Google Sheets sync engine
 │   └── utils.ts              # Utility functions
 └── public/                   # Static assets
 ```
@@ -301,4 +318,5 @@ pnpm start
 | 0.5.0 | Feb 8, 2026 | Firebase authentication - email/password, Google, GitHub OAuth |
 | 0.6.0 | Mar 27, 2026 | Migrated to Cloudflare Workers + D1 + KV, per-state sheet sync |
 | 0.7.0 | Mar 28, 2026 | Unified database migration — single sheet, 65 LGAs, 10 indicators |
+| 0.8.0 | Mar 28, 2026 | Hardening — Trend Analysis page, real-data Analysis page, error boundaries, cron security, dead code cleanup, Firebase SSR fix |
 

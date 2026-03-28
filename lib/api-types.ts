@@ -51,6 +51,29 @@ export interface LgaProfileRow {
   voter_gap: number
 }
 
+export interface TrendAnalysisRow {
+  id: number
+  section: string
+  state: string
+  metric: string
+  content: string
+  raw_row: string
+}
+
+export interface IndicatorAnalysisRow {
+  id: number
+  indicator: string
+  state: string
+  lga: string
+  risk_zone: string
+  y2022: number
+  y2023: number
+  y2024: number
+  y2025: number
+  change_pct: number
+  rank: number
+}
+
 export interface ApiResponse<T> {
   source?: string
   data: T[]

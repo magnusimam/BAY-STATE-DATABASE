@@ -101,6 +101,12 @@
       "regex": "^/dashboard/policy\\-briefs(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/policy\\-briefs(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trends",
+      "regex": "^/dashboard/trends(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trends(?:/)?$"
     }
   ],
   "dataRoutes": [],
