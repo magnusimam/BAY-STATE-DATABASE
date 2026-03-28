@@ -17,9 +17,9 @@ import {
 } from 'recharts'
 import { Search, ArrowRight, TrendingUp, Users, AlertTriangle, MapPin } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
-import { bayStates, getAllLGAs, getTopLGAsByNeed, type BAYState, type LGA } from '@/lib/bay-data'
+import { bayStates, type BAYState } from '@/lib/bay-data'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
-import { groupByLga, getUniqueLgas, computeSummary } from '@/lib/api-types'
+import { groupByLga, getUniqueLgas, computeSummary, fetchJson } from '@/lib/api-types'
 
 // BAY States data
 const statesData = Object.values(bayStates)
@@ -27,9 +27,14 @@ const statesData = Object.values(bayStates)
 // State card component
 function StateCard({
   state,
+  rows,
 }: {
   state: BAYState
+  rows: MasterRow[]
 }) {
+  const summary = rows.length ? computeSummary(rows) : null
+  const lgaCount = summary?.totalLGAs ?? state.lgaCount
+
   return (
     <Link href={`/dashboard/countries/${state.code.toLowerCase()}`}>
       <Card className="bg-card border-border hover:border-accent/50 transition cursor-pointer group">
@@ -43,34 +48,35 @@ function StateCard({
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">{state.name}</h3>
-                  <p className="text-xs text-muted-foreground">{state.lgaCount} LGAs • {state.population.toFixed(2)}M people</p>
+                  <p className="text-xs text-muted-foreground">{lgaCount} LGAs • {state.population.toFixed(2)}M people</p>
                 </div>
               </div>
             </div>
             <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-accent transition" />
           </div>
 
-          {/* Metrics */}
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Displaced</div>
-              <div className="font-bold text-sm">{state.displacedPersons.toFixed(2)}M</div>
+          {/* Metrics from live data */}
+          {summary && (
+            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Displaced (2025)</div>
+                <div className="font-bold text-sm">{summary.totalDisplacement2025.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Conflict (2025)</div>
+                <div className="font-bold text-sm text-accent">{summary.totalConflict2025.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">LGAs Tracked</div>
+                <div className="font-bold text-sm">{lgaCount}</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Need (M)</div>
-              <div className="font-bold text-sm text-accent">{state.humanitarianNeed.toFixed(2)}M</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Severity</div>
-              <div className="font-bold text-sm">{state.severity}/100</div>
-            </div>
-          </div>
+          )}
 
-          {/* Programs */}
+          {/* Status */}
           <div className="flex items-center justify-between pt-2 border-t border-border">
-            <div className="text-sm">
-              <span className="font-bold text-accent">{state.activePrograms}</span>
-              <span className="text-muted-foreground ml-1">active programs</span>
+            <div className="text-sm text-muted-foreground">
+              {rows.length ? `${rows.length} data points` : 'Loading...'}
             </div>
             <Badge className="bg-accent/10 text-accent border-accent/20">
               Active
@@ -79,47 +85,6 @@ function StateCard({
         </div>
       </Card>
     </Link>
-  )
-}
-
-// LGA card component  
-function LGACard({
-  lga,
-  state,
-}: {
-  lga: LGA
-  state: string
-}) {
-  return (
-    <Card className="bg-card border-border hover:border-accent/50 transition">
-      <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <h4 className="font-bold text-sm">{lga.name}</h4>
-            <p className="text-xs text-muted-foreground mt-1">{state}</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border text-xs">
-          <div>
-            <div className="text-muted-foreground mb-1">Need %</div>
-            <div className="font-bold text-accent">{lga.humanitarianNeed}%</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground mb-1">Severity</div>
-            <div className="font-bold">{lga.severity}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground mb-1">Population</div>
-            <div className="font-bold">{(lga.population / 1000).toFixed(2)}M</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground mb-1">Programs</div>
-            <div className="font-bold text-accent">{lga.activePrograms}</div>
-          </div>
-        </div>
-      </div>
-    </Card>
   )
 }
 
@@ -185,9 +150,8 @@ export default function Countries() {
   const [allRows, setAllRows] = useState<MasterRow[]>([])
 
   useEffect(() => {
-    fetch('/api/data?view=master')
-      .then(r => r.json())
-      .then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? []))
+    fetchJson<ApiResponse<MasterRow>>('/api/data?view=master')
+      .then(d => setAllRows(d.data ?? []))
       .catch(() => {})
   }, [])
 
@@ -197,7 +161,7 @@ export default function Countries() {
   const yobeRows = useMemo(() => allRows.filter(r => r.state === 'Yobe'), [allRows])
 
   const topLGAs = useMemo(() => {
-    if (!hasData) return getTopLGAsByNeed(5).map(l => ({ name: l.name, need: l.humanitarianNeed }))
+    if (!hasData) return []
     const unemp = allRows.filter(r => r.indicator === 'Unemployment Rate')
     return unemp.sort((a, b) => b.y2025 - a.y2025).slice(0, 5).map(r => ({ name: r.lga, need: r.y2025 }))
   }, [allRows, hasData])
@@ -254,18 +218,22 @@ export default function Countries() {
           {/* Top states chart */}
           <Card className="bg-card border-border p-4 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="font-bold text-base sm:text-lg">BAY States by Humanitarian Need</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Millions of people affected</p>
+              <h2 className="font-bold text-base sm:text-lg">BAY States — Displacement (2025)</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Total displaced persons per state</p>
             </div>
             <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
-              <BarChart data={statesData.map(s => ({ code: s.code, name: s.name, need: s.humanitarianNeed }))}>
+              <BarChart data={[
+                { code: 'BN', name: 'Borno', value: computeSummary(bornoRows).totalDisplacement2025 },
+                { code: 'AD', name: 'Adamawa', value: computeSummary(adamawaRows).totalDisplacement2025 },
+                { code: 'YB', name: 'Yobe', value: computeSummary(yobeRows).totalDisplacement2025 },
+              ]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
                 <XAxis dataKey="code" stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }}
                 />
-                <Bar dataKey="need" fill="#f4b942" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="value" fill="#f4b942" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -280,7 +248,9 @@ export default function Countries() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                 {filteredStates.map((state) => (
-                  <StateCard key={state.code} state={state} />
+                  <StateCard key={state.code} state={state} rows={
+                    state.code === 'BN' ? bornoRows : state.code === 'AD' ? adamawaRows : yobeRows
+                  } />
                 ))}
               </div>
             )}
@@ -313,7 +283,7 @@ export default function Countries() {
           {/* All LGAs grid */}
           <div className="space-y-3 sm:space-y-4">
             <h2 className="font-bold text-base sm:text-lg">
-              All LGAs ({hasData ? computeSummary(allRows).totalLGAs : Object.values(bayStates).reduce((s, st) => s + Object.keys(st.lgas).length, 0)})
+              All LGAs ({hasData ? computeSummary(allRows).totalLGAs : 65})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {statesData.map(state => (
@@ -339,9 +309,7 @@ export default function Countries() {
                           <BornoSheetLGACard key={lgaName} rows={rows} />
                         ))
                       }
-                      return Object.values(state.lgas).map((lga) => (
-                        <LGACard key={lga.code} lga={lga} state={state.name} />
-                      ))
+                      return <p className="text-sm text-muted-foreground py-4">Loading LGA data...</p>
                     })()}
                   </div>
                 </div>

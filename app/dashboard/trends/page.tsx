@@ -52,11 +52,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type {
-  TrendAnalysisRow,
-  MasterRow,
-  ApiResponse,
-  SyncStatus,
+import {
+  fetchJson,
+  type TrendAnalysisRow,
+  type MasterRow,
+  type ApiResponse,
+  type SyncStatus,
 } from '@/lib/api-types'
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -183,11 +184,11 @@ export default function TrendsPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/data?view=trends').then(r => r.json()),
-      fetch('/api/data?view=master').then(r => r.json()),
-      fetch('/api/data').then(r => r.json()),
+      fetchJson<ApiResponse<TrendAnalysisRow>>('/api/data?view=trends'),
+      fetchJson<ApiResponse<MasterRow>>('/api/data?view=master'),
+      fetchJson<SyncStatus>('/api/data'),
     ])
-      .then(([trendData, masterData, syncData]: [ApiResponse<TrendAnalysisRow>, ApiResponse<MasterRow>, SyncStatus]) => {
+      .then(([trendData, masterData, syncData]) => {
         setTrends(trendData.data ?? [])
         setMasterRows(masterData.data ?? [])
         if (syncData.last_sync?.updated_at) {

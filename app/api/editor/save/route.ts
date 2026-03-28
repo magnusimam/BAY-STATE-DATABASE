@@ -15,7 +15,7 @@ async function verifyFirebaseToken(idToken: string): Promise<string | null> {
       }
     )
     if (!res.ok) return null
-    const data = await res.json()
+    const data: any = await res.json()
     return (data.users?.[0]?.email as string | undefined) ?? null
   } catch {
     return null
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json()
+    const body = await req.json() as Record<string, unknown>
     await writeSiteContent(body)
     return NextResponse.json({ success: true })
   } catch {

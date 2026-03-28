@@ -8,7 +8,7 @@ import { ArrowRight, TrendingUp, Users, Globe, Zap, Heart, Shield, BookOpen, Quo
 import { useState, useEffect } from 'react'
 import { AnimatedCounter, FadeIn, Sparkline, PulseDot, Skeleton } from '@/components/ui/animations'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
-import { computeSummary } from '@/lib/api-types'
+import { computeSummary, fetchJson } from '@/lib/api-types'
 import type { ElementStyle } from '@/lib/use-admin-content'
 import defaultContent from '@/lib/site-content.json'
 
@@ -375,11 +375,11 @@ function BornoTrackerSection({ accent, bornoData }: { accent: string; bornoData:
           )) : filteredRows.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No data available</div>
           ) : filteredRows.map((row, idx) => {
-            const zoneColor = ZONE_COLORS[row.zone] ?? accent
+            const zoneColor = ZONE_COLORS[row.risk_zone] ?? accent
             return (
               <div key={row.lga} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-3 border-b border-border/30 items-center hover:bg-secondary/30 transition-colors">
                 <div className="flex items-center gap-2 min-w-0"><span className="text-[10px] font-mono text-muted-foreground/50 w-4 flex-shrink-0">{idx + 1}</span><span className="text-xs sm:text-sm font-medium text-foreground truncate">{row.lga}</span></div>
-                <span className="hidden sm:inline-flex text-[9px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ backgroundColor: `${zoneColor}20`, color: zoneColor }}>{row.zone}</span>
+                <span className="hidden sm:inline-flex text-[9px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ backgroundColor: `${zoneColor}20`, color: zoneColor }}>{row.risk_zone}</span>
                 <span className="text-xs sm:text-sm font-bold text-right tabular-nums" style={{ color: accent }}>{formatValue(row[selectedYear], selectedIndicator)}</span>
                 <span className={`text-sm text-right ${row.trend === 'Improving' ? 'text-green-400' : 'text-red-400'}`}>{row.trend === 'Improving' ? '↑' : '↓'}</span>
                 <div className="hidden sm:flex justify-end"><Sparkline data={[row.y2022, row.y2023, row.y2024, row.y2025]} color={zoneColor} width={56} height={18} showGradient={false} /></div>
@@ -527,9 +527,8 @@ export default function Home() {
 
   useEffect(() => {
     // Load live content from API (picks up admin edits)
-    fetch('/api/editor/content')
-      .then(r => r.json())
-      .then((data: SiteContent & { elementStyles?: Record<string, ElementStyle> }) => {
+    fetchJson<SiteContent & { elementStyles?: Record<string, ElementStyle> }>('/api/editor/content')
+      .then(data => {
         const { elementStyles: es, ...rest } = data
         setContent(rest as SiteContent)
         if (es) setElementStyles(es)
@@ -537,7 +536,7 @@ export default function Home() {
       .catch(() => {})
 
     // Load unified data
-    fetch('/api/data?view=master').then(r => r.json()).then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? [])).catch(() => {})
+    fetchJson<ApiResponse<MasterRow>>('/api/data?view=master').then(d => setAllRows(d.data ?? [])).catch(() => {})
   }, [])
 
   const accent = content.colors?.accent ?? '#f4b942'

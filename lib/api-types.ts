@@ -88,6 +88,12 @@ export interface SyncStatus {
   tables: { t: string; c: number }[]
 }
 
+/** Typed fetch — avoids `unknown` return from res.json() with Cloudflare types */
+export async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url)
+  return res.json() as Promise<T>
+}
+
 /** Helper: group master_data rows by LGA */
 export function groupByLga(rows: MasterRow[]): Map<string, MasterRow[]> {
   const map = new Map<string, MasterRow[]>()

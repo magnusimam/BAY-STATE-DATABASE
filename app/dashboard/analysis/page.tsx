@@ -31,11 +31,12 @@ import {
   BarChart3,
   Target,
 } from 'lucide-react'
-import type {
-  MasterRow,
-  IndicatorAnalysisRow,
-  TrendAnalysisRow,
-  ApiResponse,
+import {
+  fetchJson,
+  type MasterRow,
+  type IndicatorAnalysisRow,
+  type TrendAnalysisRow,
+  type ApiResponse,
 } from '@/lib/api-types'
 
 export default function Analysis() {
@@ -46,15 +47,11 @@ export default function Analysis() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/data?view=master').then(r => r.json()),
-      fetch('/api/data?view=indicators').then(r => r.json()),
-      fetch('/api/data?view=trends').then(r => r.json()),
+      fetchJson<ApiResponse<MasterRow>>('/api/data?view=master'),
+      fetchJson<ApiResponse<IndicatorAnalysisRow>>('/api/data?view=indicators'),
+      fetchJson<ApiResponse<TrendAnalysisRow>>('/api/data?view=trends'),
     ])
-      .then(([master, indicators, trends]: [
-        ApiResponse<MasterRow>,
-        ApiResponse<IndicatorAnalysisRow>,
-        ApiResponse<TrendAnalysisRow>,
-      ]) => {
+      .then(([master, indicators, trends]) => {
         setMasterRows(master.data ?? [])
         setIndicatorRows(indicators.data ?? [])
         setTrendRows(trends.data ?? [])

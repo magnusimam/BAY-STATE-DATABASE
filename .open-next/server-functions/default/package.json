@@ -67,6 +67,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260317.1",
     "@opennextjs/cloudflare": "^1.18.0",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",

@@ -36,7 +36,7 @@ import {
 } from 'lucide-react'
 
 import type { MasterRow, RegionalOverviewRow, ApiResponse, SyncStatus } from '@/lib/api-types'
-import { computeSummary } from '@/lib/api-types'
+import { computeSummary, fetchJson } from '@/lib/api-types'
 import { useAuth } from '@/lib/auth-context'
 import { isAdminEmail } from '@/lib/admin-emails'
 
@@ -172,9 +172,9 @@ export default function Dashboard() {
   React.useEffect(() => {
     // Fetch all master data + overview + sync status in parallel
     Promise.all([
-      fetch('/api/data?view=master').then(r => r.json()).then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? [])),
-      fetch('/api/data?view=overview').then(r => r.json()).then((d: ApiResponse<RegionalOverviewRow>) => setOverview(d.data ?? [])),
-      fetch('/api/data').then(r => r.json()).then((d: SyncStatus) => {
+      fetchJson<ApiResponse<MasterRow>>('/api/data?view=master').then(d => setAllRows(d.data ?? [])),
+      fetchJson<ApiResponse<RegionalOverviewRow>>('/api/data?view=overview').then(d => setOverview(d.data ?? [])),
+      fetchJson<SyncStatus>('/api/data').then(d => {
         if (d.last_sync?.updated_at) setLastSynced(d.last_sync.updated_at)
       }),
     ]).catch(() => {})
@@ -186,7 +186,7 @@ export default function Dashboard() {
     try {
       const token = await user.getIdToken()
       await fetch('/api/admin/sync', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
-      const fresh = await fetch('/api/data?view=master').then(r => r.json())
+      const fresh = await fetchJson<ApiResponse<MasterRow>>('/api/data?view=master')
       setAllRows(fresh.data ?? [])
       setLastSynced(Date.now())
     } catch {

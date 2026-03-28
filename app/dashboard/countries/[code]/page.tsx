@@ -24,7 +24,7 @@ import { ArrowLeft, Download, Share2, TrendingUp } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { Sparkline, Skeleton } from '@/components/ui/animations'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
-import { computeSummary, getUniqueIndicators } from '@/lib/api-types'
+import { computeSummary, getUniqueIndicators, fetchJson } from '@/lib/api-types'
 
 // Mock data for countries
 const countryDetails: Record<string, any> = {
@@ -149,9 +149,8 @@ function StateDetailPage({ stateCode }: { stateCode: string }) {
   const [selectedIndicator, setSelectedIndicator] = useState('Displacement')
 
   useEffect(() => {
-    fetch(`/api/data?state=${config.stateName.toLowerCase()}`)
-      .then(r => r.json())
-      .then((d: ApiResponse<MasterRow>) => setRows(d.data ?? []))
+    fetchJson<ApiResponse<MasterRow>>(`/api/data?state=${config.stateName.toLowerCase()}`)
+      .then(d => setRows(d.data ?? []))
       .catch(() => {})
   }, [config.stateName])
 
@@ -322,7 +321,7 @@ function StateDetailPage({ stateCode }: { stateCode: string }) {
             </div>
           ))
         ) : filteredRows.map((row, idx) => {
-          const zoneColor = ZONE_COLORS[row.zone] ?? '#f4b942'
+          const zoneColor = ZONE_COLORS[row.risk_zone] ?? '#f4b942'
           const sparkData = [row.y2022, row.y2023, row.y2024, row.y2025]
           return (
             <div key={row.lga}
@@ -333,7 +332,7 @@ function StateDetailPage({ stateCode }: { stateCode: string }) {
               </div>
               <span className="hidden sm:inline-flex text-[9px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
                 style={{ backgroundColor: `${zoneColor}20`, color: zoneColor }}>
-                {row.zone}
+                {row.risk_zone}
               </span>
               <span className="text-xs sm:text-sm font-bold text-right tabular-nums text-accent">
                 {fmtVal(row[selectedYear], selectedIndicator)}

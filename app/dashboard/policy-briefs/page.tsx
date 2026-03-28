@@ -15,7 +15,7 @@ import {
   Textarea,
 } from '@/components/ui/textarea'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
-import { computeSummary } from '@/lib/api-types'
+import { computeSummary, fetchJson } from '@/lib/api-types'
 import {
   Download,
   Share2,
@@ -313,9 +313,8 @@ export default function PolicyBriefs() {
   const [allRows, setAllRows] = useState<MasterRow[]>([])
 
   useEffect(() => {
-    fetch('/api/data?view=master')
-      .then(r => r.json())
-      .then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? []))
+    fetchJson<ApiResponse<MasterRow>>('/api/data?view=master')
+      .then(d => setAllRows(d.data ?? []))
       .catch(() => {})
   }, [])
 

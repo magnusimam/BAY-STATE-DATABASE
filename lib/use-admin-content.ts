@@ -51,8 +51,8 @@ export function useAdminContent() {
   // Load content on mount
   useEffect(() => {
     fetch('/api/editor/content')
-      .then(r => r.json())
-      .then((data: SiteContent & { elementStyles?: Record<string, ElementStyle> }) => {
+      .then(r => r.json() as Promise<SiteContent & { elementStyles?: Record<string, ElementStyle> }>)
+      .then((data) => {
         const { elementStyles: es, ...rest } = data
         setContent(rest as SiteContent)
         setSavedContent(rest as SiteContent)
