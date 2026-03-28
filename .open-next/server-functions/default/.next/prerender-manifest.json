@@ -1,6 +1,30 @@
 {
   "version": 4,
   "routes": {
+    "/auth/signin": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/auth/signin",
+      "dataRoute": "/auth/signin.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/auth/signup": {
       "experimentalBypassFor": [
         {
@@ -49,30 +73,6 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/auth/signin": {
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/auth/signin",
-      "dataRoute": "/auth/signin.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
     "/admin/content": {
       "experimentalBypassFor": [
         {
@@ -88,30 +88,6 @@
       "initialRevalidateSeconds": false,
       "srcRoute": "/admin/content",
       "dataRoute": "/admin/content.rsc",
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
-    "/admin/theme": {
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/admin/theme",
-      "dataRoute": "/admin/theme.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -169,6 +145,30 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/admin/theme": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/admin/theme",
+      "dataRoute": "/admin/theme.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/dashboard/comparison": {
       "experimentalBypassFor": [
         {
@@ -193,7 +193,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/dashboard/analysis": {
+    "/dashboard/countries": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -206,8 +206,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/dashboard/analysis",
-      "dataRoute": "/dashboard/analysis.rsc",
+      "srcRoute": "/dashboard/countries",
+      "dataRoute": "/dashboard/countries.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -289,7 +289,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/dashboard/countries": {
+    "/dashboard/analysis": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -302,8 +302,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/dashboard/countries",
-      "dataRoute": "/dashboard/countries.rsc",
+      "srcRoute": "/dashboard/analysis",
+      "dataRoute": "/dashboard/analysis.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -317,8 +317,8 @@
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "18b341255956ef9104ee9fba616d2cb5",
-    "previewModeSigningKey": "90e93b138c50b01220d345cfb5c6618bbb88f11ec8311e0d2c45bcdab64ae389",
-    "previewModeEncryptionKey": "5a08f061722c02410a1d3a5b4909e1f3655428c122a367e1032f5c2f80dba493"
+    "previewModeId": "92c73727307380ee1344b9c35f17f7fb",
+    "previewModeSigningKey": "04a8bed48a6ba8d674bdbf8f8512636c86cbdcf675e13d714601c41241633603",
+    "previewModeEncryptionKey": "b6d79067ff883ce4710962ed5a99fb5e63647fcbe645d3ec7974228eed83cb88"
   }
 }
