@@ -19,6 +19,17 @@ database_id = "d32e5057-226f-4429-b702-2948ed1cdfab"
 binding = "CACHE"
 id = "c8b8a51d8fb44b0288849d4809033434"
 
+# ── Environment Variables ───────────────────────────────────────────────────
+[vars]
+NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyDv6m2vJmyDw3FMYFDKpDO8ENnCVA8E7Y0"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "humaid-bay-states.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID = "humaid-bay-states"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "humaid-bay-states.firebasestorage.app"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "525728563081"
+NEXT_PUBLIC_FIREBASE_APP_ID = "1:525728563081:web:062fa1b6d6c526be276b58"
+NEXT_PUBLIC_ADMIN_EMAILS = "imammagnus40@gmail.com"
+ADMIN_EMAILS = "imammagnus40@gmail.com"
+
 # ── Cron Triggers ───────────────────────────────────────────────────────────
 # Auto-sync Google Sheet data every 6 hours
 [triggers]
