@@ -7,9 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowRight, TrendingUp, Users, Globe, Zap, Heart, Shield, BookOpen, Quote } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { AnimatedCounter, FadeIn, Sparkline, PulseDot, Skeleton } from '@/components/ui/animations'
-import type { BornoData } from '@/app/api/sheets/borno/route'
-import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
-import type { YobeData } from '@/app/api/sheets/yobe/route'
+import type { MasterRow, ApiResponse } from '@/lib/api-types'
+import { computeSummary } from '@/lib/api-types'
 import type { ElementStyle } from '@/lib/use-admin-content'
 import defaultContent from '@/lib/site-content.json'
 
@@ -246,11 +245,11 @@ function IndicatorCards({ content, styles }: { content: SiteContent; styles: Rec
   )
 }
 
-function GeographicSnapshot({ content, styles, bornoData, adamawaData, yobeData }: { content: SiteContent; styles: Record<string, ElementStyle>; bornoData: BornoData | null; adamawaData: AdamawaData | null; yobeData: YobeData | null }) {
+function GeographicSnapshot({ content, styles, bornoData, adamawaData, yobeData }: { content: SiteContent; styles: Record<string, ElementStyle>; bornoData: MasterRow[]; adamawaData: MasterRow[]; yobeData: MasterRow[] }) {
   const accent = content.colors?.accent ?? '#f4b942'
-  const borno = bornoData?.summary
-  const adamawa = adamawaData?.summary
-  const yobe = yobeData?.summary
+  const borno = bornoData.length ? computeSummary(bornoData) : null
+  const adamawa = adamawaData.length ? computeSummary(adamawaData) : null
+  const yobe = yobeData.length ? computeSummary(yobeData) : null
   const bornoDisplaced = borno ? borno.totalDisplacement2025.toLocaleString() : '...'
   const adamawaDisplaced = adamawa ? adamawa.totalDisplacement2025.toLocaleString() : '...'
   const yobeDisplaced = yobe ? yobe.totalDisplacement2025.toLocaleString() : '...'
@@ -320,23 +319,23 @@ function GeographicSnapshot({ content, styles, bornoData, adamawaData, yobeData 
   )
 }
 
-const ZONE_COLORS: Record<string, string> = { 'Conflict-Affected': '#ef4444', 'Stable/Urban': '#22c55e', 'Semi-Stable': '#f59e0b' }
-const INDICATOR_UNITS: Record<string, string> = { 'Youth % Population': '%', 'Literacy Rate': '%', 'Unemployment Rate': '%', 'Health Facilities': ' facilities', 'Ag Output (₦)': ' ₦', 'Displacement': ' persons', 'Conflict Incidents': ' incidents', 'SMEs': ' SMEs', 'Out-of-school Gap': '%', 'Voter Card Gap': '%' }
+const ZONE_COLORS: Record<string, string> = { 'High Risk': '#ef4444', 'Low Risk': '#22c55e', 'Medium Risk': '#f59e0b' }
+const INDICATOR_UNITS: Record<string, string> = { 'Youth % Population': '%', 'Literacy Rate': '%', 'Unemployment Rate': '%', 'Health Facilities': ' facilities', 'Ag Output (₦)': ' ₦', 'Displacement': ' persons', 'Conflict Incidents': ' incidents', 'SMEs Registered': ' SMEs', 'Out-of-school Gap': '%', 'Voter Card Gap': '%' }
 const LOWER_IS_BETTER = new Set(['Unemployment Rate', 'Displacement', 'Conflict Incidents', 'Out-of-school Gap', 'Voter Card Gap'])
 
 function formatValue(value: number, indicator: string): string {
   if (indicator === 'Ag Output (₦)') return `₦${value.toLocaleString()}`
-  if (['Displacement', 'Conflict Incidents', 'SMEs', 'Health Facilities'].includes(indicator)) return value.toLocaleString()
+  if (['Displacement', 'Conflict Incidents', 'SMEs Registered', 'Health Facilities'].includes(indicator)) return value.toLocaleString()
   return `${value.toFixed(1)}%`
 }
 
-function BornoTrackerSection({ accent, bornoData }: { accent: string; bornoData: BornoData | null }) {
+function BornoTrackerSection({ accent, bornoData }: { accent: string; bornoData: MasterRow[] }) {
   const [selectedYear, setSelectedYear] = useState<'y2022' | 'y2023' | 'y2024' | 'y2025'>('y2025')
   const [selectedIndicator, setSelectedIndicator] = useState('Displacement')
-  const indicators = bornoData?.indicators ?? []
-  const rows = bornoData?.rows ?? []
+  const indicators = [...new Set(bornoData.map(r => r.indicator))].sort()
+  const rows = bornoData
   const filteredRows = rows.filter(r => r.indicator === selectedIndicator).sort((a, b) => { const aVal = a[selectedYear]; const bVal = b[selectedYear]; return LOWER_IS_BETTER.has(selectedIndicator) ? aVal - bVal : bVal - aVal })
-  const zoneCounts = { 'Conflict-Affected': bornoData?.rows.filter(r => r.indicator === selectedIndicator && r.zone === 'Conflict-Affected').length ?? 14, 'Stable/Urban': bornoData?.rows.filter(r => r.indicator === selectedIndicator && r.zone === 'Stable/Urban').length ?? 8, 'Semi-Stable': bornoData?.rows.filter(r => r.indicator === selectedIndicator && r.zone === 'Semi-Stable').length ?? 5 }
+  const zoneCounts = { 'High Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'High Risk').length || 14, 'Low Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'Low Risk').length || 8, 'Medium Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'Medium Risk').length || 5 }
   const years: { key: 'y2022' | 'y2023' | 'y2024' | 'y2025'; label: string }[] = [{ key: 'y2022', label: '2022' }, { key: 'y2023', label: '2023' }, { key: 'y2024', label: '2024' }, { key: 'y2025', label: '2025' }]
 
   return (
@@ -369,7 +368,7 @@ function BornoTrackerSection({ accent, bornoData }: { accent: string; bornoData:
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-2.5 bg-secondary/40 border-b border-border text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             <span>LGA</span><span className="text-right w-24 hidden sm:block">Zone</span><span className="text-right w-20">Value</span><span className="text-right w-14">Trend</span><span className="text-right w-16 hidden sm:block">2022-2025</span>
           </div>
-          {!bornoData ? Array.from({ length: 8 }).map((_, i) => (
+          {bornoData.length === 0 ? Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-3 border-b border-border/50 items-center">
               <Skeleton className="h-3 w-24" /><Skeleton className="h-4 w-20 hidden sm:block" /><Skeleton className="h-3 w-14" /><Skeleton className="h-3 w-8" /><Skeleton className="h-4 w-14 hidden sm:block" />
             </div>
@@ -521,9 +520,10 @@ function FooterSection({ content }: { content: SiteContent }) {
 export default function Home() {
   const [content, setContent] = useState<SiteContent>(defaultContent as SiteContent)
   const [elementStyles, setElementStyles] = useState<Record<string, ElementStyle>>({})
-  const [bornoData, setBornoData] = useState<BornoData | null>(null)
-  const [adamawaData, setAdamawaData] = useState<AdamawaData | null>(null)
-  const [yobeData, setYobeData] = useState<YobeData | null>(null)
+  const [allRows, setAllRows] = useState<MasterRow[]>([])
+  const bornoData = allRows.filter(r => r.state === 'Borno')
+  const adamawaData = allRows.filter(r => r.state === 'Adamawa')
+  const yobeData = allRows.filter(r => r.state === 'Yobe')
 
   useEffect(() => {
     // Load live content from API (picks up admin edits)
@@ -536,10 +536,8 @@ export default function Home() {
       })
       .catch(() => {})
 
-    // Load sheet data
-    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
-    fetch('/api/sheets/adamawa').then(r => r.json()).then(setAdamawaData).catch(() => {})
-    fetch('/api/sheets/yobe').then(r => r.json()).then(setYobeData).catch(() => {})
+    // Load unified data
+    fetch('/api/data?view=master').then(r => r.json()).then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? [])).catch(() => {})
   }, [])
 
   const accent = content.colors?.accent ?? '#f4b942'

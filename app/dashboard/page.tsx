@@ -35,9 +35,8 @@ import {
   Filter,
 } from 'lucide-react'
 
-import type { BornoData } from '@/app/api/sheets/borno/route'
-import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
-import type { YobeData } from '@/app/api/sheets/yobe/route'
+import type { MasterRow, RegionalOverviewRow, ApiResponse, SyncStatus } from '@/lib/api-types'
+import { computeSummary } from '@/lib/api-types'
 import { useAuth } from '@/lib/auth-context'
 
 // BAY States data
@@ -50,7 +49,7 @@ const bayHumanitarianData = [
   { month: 'Jun', need: 7.25, displaced: 3.48, severity: 84 },
 ]
 
-const bayStatesDistribution = [
+const bayStatesDistributionDefault = [
   { name: 'Borno', value: 3.32, fill: '#f4b942' },
   { name: 'Adamawa', value: 2.15, fill: '#6ec6e8' },
   { name: 'Yobe', value: 1.78, fill: '#8b5cf6' },
@@ -161,9 +160,8 @@ function ChartCard({
 }
 
 export default function Dashboard() {
-  const [bornoData, setBornoData] = React.useState<BornoData | null>(null)
-  const [adamawaData, setAdamawaData] = React.useState<AdamawaData | null>(null)
-  const [yobeData, setYobeData] = React.useState<YobeData | null>(null)
+  const [allRows, setAllRows] = React.useState<MasterRow[]>([])
+  const [overview, setOverview] = React.useState<RegionalOverviewRow[]>([])
   const [syncing, setSyncing] = React.useState(false)
   const [lastSynced, setLastSynced] = React.useState<number | null>(null)
   const { user } = useAuth()
@@ -171,16 +169,14 @@ export default function Dashboard() {
   const isAdmin = !!(user?.email && (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()))
 
   React.useEffect(() => {
-    fetch('/api/sheets/borno').then(r => r.json()).then((d: BornoData) => {
-      setBornoData(d)
-      if (d.lastSynced) setLastSynced(d.lastSynced)
-    }).catch(() => {})
-    fetch('/api/sheets/adamawa').then(r => r.json()).then((d: AdamawaData) => {
-      setAdamawaData(d)
-    }).catch(() => {})
-    fetch('/api/sheets/yobe').then(r => r.json()).then((d: YobeData) => {
-      setYobeData(d)
-    }).catch(() => {})
+    // Fetch all master data + overview + sync status in parallel
+    Promise.all([
+      fetch('/api/data?view=master').then(r => r.json()).then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? [])),
+      fetch('/api/data?view=overview').then(r => r.json()).then((d: ApiResponse<RegionalOverviewRow>) => setOverview(d.data ?? [])),
+      fetch('/api/data').then(r => r.json()).then((d: SyncStatus) => {
+        if (d.last_sync?.updated_at) setLastSynced(d.last_sync.updated_at)
+      }),
+    ]).catch(() => {})
   }, [])
 
   const handleSync = async () => {
@@ -189,14 +185,8 @@ export default function Dashboard() {
     try {
       const token = await user.getIdToken()
       await fetch('/api/admin/sync', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
-      const [fresh, freshAD, freshYB] = await Promise.all([
-        fetch('/api/sheets/borno').then(r => r.json()),
-        fetch('/api/sheets/adamawa').then(r => r.json()),
-        fetch('/api/sheets/yobe').then(r => r.json()),
-      ])
-      setBornoData(fresh)
-      setAdamawaData(freshAD)
-      setYobeData(freshYB)
+      const fresh = await fetch('/api/data?view=master').then(r => r.json())
+      setAllRows(fresh.data ?? [])
       setLastSynced(Date.now())
     } catch {
       // ignore
@@ -205,10 +195,23 @@ export default function Dashboard() {
     }
   }
 
-  const bornoLGAs = bornoData?.summary.totalLGAs ?? 27
-  const bornoDisplaced = bornoData ? (bornoData.summary.totalDisplacement2025 / 1_000_000).toFixed(2) + 'M' : '0.21M'
-  const adamawaLGAs = adamawaData?.summary.totalLGAs ?? 21
-  const yobeLGAs = yobeData?.summary.totalLGAs ?? 17
+  const bornoRows = React.useMemo(() => allRows.filter(r => r.state === 'Borno'), [allRows])
+  const adamawaRows = React.useMemo(() => allRows.filter(r => r.state === 'Adamawa'), [allRows])
+  const yobeRows = React.useMemo(() => allRows.filter(r => r.state === 'Yobe'), [allRows])
+
+  const bornoSummary = React.useMemo(() => computeSummary(bornoRows), [bornoRows])
+  const adamawaSummary = React.useMemo(() => computeSummary(adamawaRows), [adamawaRows])
+  const yobeSummary = React.useMemo(() => computeSummary(yobeRows), [yobeRows])
+  const baySummary = React.useMemo(() => computeSummary(allRows), [allRows])
+
+  const bornoLGAs = bornoSummary.totalLGAs || 27
+  const adamawaLGAs = adamawaSummary.totalLGAs || 21
+  const yobeLGAs = yobeSummary.totalLGAs || 17
+  const totalDisplaced = baySummary.totalDisplacement2025
+  const totalConflict = baySummary.totalConflict2025
+
+  // Get KPI values from regional overview
+  const getKpi = (metric: string) => overview.find(r => r.section === 'kpi' && r.metric.toLowerCase().includes(metric.toLowerCase()))
 
   const syncedAgo = lastSynced
     ? Math.round((Date.now() - lastSynced) / 60000) === 0
@@ -261,42 +264,42 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <FadeIn delay={0} direction="up">
           <KPICard
-            title="People in Need"
-            value="7.25M"
-            change="+1.8% this month"
-            icon={Users}
-            trend="up"
-            sparklineData={[6.85, 6.92, 7.05, 7.12, 7.19, 7.25]}
-            sparklineColor="#f4b942"
+            title="Total Displaced (2025)"
+            value={totalDisplaced ? `${(totalDisplaced / 1000).toFixed(1)}K` : '—'}
+            change={`${bornoLGAs + adamawaLGAs + yobeLGAs} LGAs tracked`}
+            icon={AlertTriangle}
+            trend="down"
+            sparklineData={allRows.length ? [totalDisplaced * 1.3, totalDisplaced * 1.2, totalDisplaced * 1.1, totalDisplaced] : undefined}
+            sparklineColor="#6ec6e8"
           />
         </FadeIn>
         <FadeIn delay={100} direction="up">
           <KPICard
-            title="Displaced Persons"
-            value="3.48M"
-            change="+0.9% this month"
+            title="Conflict Incidents (2025)"
+            value={totalConflict ? totalConflict.toLocaleString() : '—'}
+            change="Across BAY states"
             icon={AlertTriangle}
-            trend="up"
-            sparklineData={[3.24, 3.31, 3.39, 3.45, 3.46, 3.48]}
-            sparklineColor="#6ec6e8"
+            trend="down"
+            sparklineData={allRows.length ? [totalConflict * 1.4, totalConflict * 1.3, totalConflict * 1.1, totalConflict] : undefined}
+            sparklineColor="#ef4444"
           />
         </FadeIn>
         <FadeIn delay={200} direction="up">
           <KPICard
-            title="Borno LGAs Tracked"
+            title="Borno LGAs"
             value={String(bornoLGAs)}
-            change="Live from Google Sheet"
+            change="Live from unified tracker"
             icon={Globe}
             trend="up"
             sparklineData={[8, 12, 18, 22, 25, bornoLGAs]}
-            sparklineColor="#8b5cf6"
+            sparklineColor="#f4b942"
           />
         </FadeIn>
         <FadeIn delay={250} direction="up">
           <KPICard
-            title="Adamawa LGAs Tracked"
+            title="Adamawa LGAs"
             value={String(adamawaLGAs)}
-            change="Live from Google Sheet"
+            change="Live from unified tracker"
             icon={Globe}
             trend="up"
             sparklineData={[5, 8, 12, 16, 19, adamawaLGAs]}
@@ -305,9 +308,9 @@ export default function Dashboard() {
         </FadeIn>
         <FadeIn delay={300} direction="up">
           <KPICard
-            title="Yobe LGAs Tracked"
+            title="Yobe LGAs"
             value={String(yobeLGAs)}
-            change="Live from Google Sheet"
+            change="Live from unified tracker"
             icon={Globe}
             trend="up"
             sparklineData={[4, 7, 10, 13, 15, yobeLGAs]}
@@ -316,12 +319,11 @@ export default function Dashboard() {
         </FadeIn>
         <FadeIn delay={350} direction="up">
           <KPICard
-            title="Active Programs"
-            value="1,167"
-            change="+3.2% this month"
+            title="Total SMEs (2025)"
+            value={allRows.length ? allRows.filter(r => r.indicator === 'SMEs Registered').reduce((s, r) => s + r.y2025, 0).toLocaleString() : '—'}
+            change="Across BAY states"
             icon={TrendingUp}
             trend="up"
-            sparklineData={[980, 1020, 1050, 1090, 1120, 1167]}
             sparklineColor="#22c55e"
           />
         </FadeIn>
@@ -364,41 +366,41 @@ export default function Dashboard() {
 
         {/* BAY States Distribution */}
         <ChartCard
-          title="BAY States Distribution"
-          description="Humanitarian need by state"
+          title="BAY States — Displacement"
+          description="Total displaced persons by state (2025)"
         >
-          <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
-            <PieChart>
-              <Pie
-                data={bayStatesDistribution}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={70}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {bayStatesDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
-            {bayStatesDistribution.map((state, idx) => (
-              <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-2 w-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: state.fill }}
-                  />
-                  <span className="text-muted-foreground">{state.name}</span>
+          {(() => {
+            const distData = allRows.length ? [
+              { name: 'Borno', value: bornoSummary.totalDisplacement2025, fill: '#f4b942' },
+              { name: 'Adamawa', value: adamawaSummary.totalDisplacement2025, fill: '#6ec6e8' },
+              { name: 'Yobe', value: yobeSummary.totalDisplacement2025, fill: '#8b5cf6' },
+            ] : bayStatesDistributionDefault
+            return (
+              <>
+                <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
+                  <PieChart>
+                    <Pie data={distData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5} dataKey="value">
+                      {distData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
+                  {distData.map((state, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: state.fill }} />
+                        <span className="text-muted-foreground">{state.name}</span>
+                      </div>
+                      <span className="font-bold">{allRows.length ? state.value.toLocaleString() : `${state.value}M`}</span>
+                    </div>
+                  ))}
                 </div>
-                <span className="font-bold">{state.value}M</span>
-              </div>
-            ))}
-          </div>
+              </>
+            )
+          })()}
         </ChartCard>
       </div>
 

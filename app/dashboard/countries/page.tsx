@@ -18,9 +18,8 @@ import {
 import { Search, ArrowRight, TrendingUp, Users, AlertTriangle, MapPin } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { bayStates, getAllLGAs, getTopLGAsByNeed, type BAYState, type LGA } from '@/lib/bay-data'
-import type { BornoData, BornoRow } from '@/app/api/sheets/borno/route'
-import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
-import type { YobeData } from '@/app/api/sheets/yobe/route'
+import type { MasterRow, ApiResponse } from '@/lib/api-types'
+import { groupByLga, getUniqueLgas, computeSummary } from '@/lib/api-types'
 
 // BAY States data
 const statesData = Object.values(bayStates)
@@ -134,9 +133,9 @@ const ZONE_COLORS: Record<string, string> = {
   'Low Risk': '#22c55e',
 }
 
-function BornoSheetLGACard({ rows }: { rows: BornoRow[] }) {
+function BornoSheetLGACard({ rows }: { rows: MasterRow[] }) {
   const lga = rows[0]?.lga ?? ''
-  const zone = rows[0]?.zone ?? 'Conflict-Affected'
+  const zone = rows[0]?.risk_zone ?? 'High Risk'
   const zoneColor = ZONE_COLORS[zone] ?? '#f4b942'
 
   const getVal = (ind: string) => rows.find(r => r.indicator === ind)?.y2025 ?? 0
@@ -183,79 +182,35 @@ function BornoSheetLGACard({ rows }: { rows: BornoRow[] }) {
 export default function Countries() {
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState('states')
-  const [bornoData, setBornoData] = useState<BornoData | null>(null)
-  const [adamawaData, setAdamawaData] = useState<AdamawaData | null>(null)
-  const [yobeData, setYobeData] = useState<YobeData | null>(null)
+  const [allRows, setAllRows] = useState<MasterRow[]>([])
 
   useEffect(() => {
-    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
-    fetch('/api/sheets/adamawa').then(r => r.json()).then(setAdamawaData).catch(() => {})
-    fetch('/api/sheets/yobe').then(r => r.json()).then(setYobeData).catch(() => {})
+    fetch('/api/data?view=master')
+      .then(r => r.json())
+      .then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? []))
+      .catch(() => {})
   }, [])
 
+  const hasData = allRows.length > 0
+  const bornoRows = useMemo(() => allRows.filter(r => r.state === 'Borno'), [allRows])
+  const adamawaRows = useMemo(() => allRows.filter(r => r.state === 'Adamawa'), [allRows])
+  const yobeRows = useMemo(() => allRows.filter(r => r.state === 'Yobe'), [allRows])
+
   const topLGAs = useMemo(() => {
-    const bnLGAs = bornoData
-      ? bornoData.lgas.map(lgaName => {
-          const row = bornoData.rows.find(r => r.lga === lgaName && r.indicator === 'Unemployment Rate')
-          return { name: lgaName, need: row?.y2025 ?? 0 }
-        })
-      : []
-    const adLGAs = adamawaData
-      ? adamawaData.lgas.map(lgaName => {
-          const row = adamawaData.rows.find(r => r.lga === lgaName && r.indicator === 'Unemployment Rate')
-          return { name: lgaName, need: row?.y2025 ?? 0 }
-        })
-      : Object.values(bayStates['AD'].lgas).map(l => ({ name: l.name, need: l.youthUnemployment }))
-    const ybLGAs = yobeData
-      ? yobeData.lgas.map(lgaName => {
-          const row = yobeData.rows.find(r => r.lga === lgaName && r.indicator === 'Unemployment Rate')
-          return { name: lgaName, need: row?.y2025 ?? 0 }
-        })
-      : Object.values(bayStates['YB'].lgas).map(l => ({ name: l.name, need: l.youthUnemployment }))
-    const all = [...bnLGAs, ...adLGAs, ...ybLGAs].filter(l => l.need > 0)
-    if (all.length) return all.sort((a, b) => b.need - a.need).slice(0, 5)
-    return getTopLGAsByNeed(5).map(l => ({ name: l.name, need: l.humanitarianNeed }))
-  }, [bornoData, adamawaData, yobeData])
+    if (!hasData) return getTopLGAsByNeed(5).map(l => ({ name: l.name, need: l.humanitarianNeed }))
+    const unemp = allRows.filter(r => r.indicator === 'Unemployment Rate')
+    return unemp.sort((a, b) => b.y2025 - a.y2025).slice(0, 5).map(r => ({ name: r.lga, need: r.y2025 }))
+  }, [allRows, hasData])
 
-  // Group sheet rows by LGA name
-  const bornoLGAMap = useMemo(() => {
-    if (!bornoData) return new Map<string, BornoRow[]>()
-    const map = new Map<string, BornoRow[]>()
-    for (const row of bornoData.rows) {
-      const existing = map.get(row.lga) ?? []
-      existing.push(row)
-      map.set(row.lga, existing)
-    }
-    return map
-  }, [bornoData])
-
-  const adamawaLGAMap = useMemo(() => {
-    if (!adamawaData) return new Map<string, AdamawaData['rows']>()
-    const map = new Map<string, AdamawaData['rows']>()
-    for (const row of adamawaData.rows) {
-      const existing = map.get(row.lga) ?? []
-      existing.push(row)
-      map.set(row.lga, existing)
-    }
-    return map
-  }, [adamawaData])
-
-  const yobeLGAMap = useMemo(() => {
-    if (!yobeData) return new Map<string, BornoRow[]>()
-    const map = new Map<string, BornoRow[]>()
-    for (const row of yobeData.rows) {
-      const existing = map.get(row.lga) ?? []
-      existing.push(row as unknown as BornoRow)
-      map.set(row.lga, existing)
-    }
-    return map
-  }, [yobeData])
+  const bornoLGAMap = useMemo(() => groupByLga(bornoRows), [bornoRows])
+  const adamawaLGAMap = useMemo(() => groupByLga(adamawaRows), [adamawaRows])
+  const yobeLGAMap = useMemo(() => groupByLga(yobeRows), [yobeRows])
 
   const filteredStates = useMemo(() => {
     const base = statesData.map(s => {
-      if (s.code === 'BN' && bornoData) return { ...s, lgaCount: bornoData.summary.totalLGAs }
-      if (s.code === 'AD' && adamawaData) return { ...s, lgaCount: adamawaData.summary.totalLGAs }
-      if (s.code === 'YB' && yobeData) return { ...s, lgaCount: yobeData.summary.totalLGAs }
+      if (s.code === 'BN' && bornoRows.length) return { ...s, lgaCount: computeSummary(bornoRows).totalLGAs }
+      if (s.code === 'AD' && adamawaRows.length) return { ...s, lgaCount: computeSummary(adamawaRows).totalLGAs }
+      if (s.code === 'YB' && yobeRows.length) return { ...s, lgaCount: computeSummary(yobeRows).totalLGAs }
       return s
     })
     if (!search) return base
@@ -264,7 +219,7 @@ export default function Countries() {
         state.name.toLowerCase().includes(search.toLowerCase()) ||
         state.code.toLowerCase().includes(search.toLowerCase())
     )
-  }, [search, bornoData, adamawaData, yobeData])
+  }, [search, bornoRows, adamawaRows, yobeRows])
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
@@ -339,7 +294,7 @@ export default function Countries() {
             <div className="mb-4 sm:mb-6">
               <h2 className="font-bold text-base sm:text-lg">Top 5 LGAs by Youth Unemployment</h2>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {bornoData || adamawaData || yobeData ? `Live from tracker · ${bornoData ? 'Borno ✓' : 'Borno —'} ${adamawaData ? 'Adamawa ✓' : 'Adamawa —'} ${yobeData ? 'Yobe ✓' : 'Yobe —'}` : 'Percentage of youth population'}
+                {hasData ? `Live from unified tracker · ${computeSummary(allRows).totalLGAs} LGAs` : 'Percentage of youth population'}
               </p>
             </div>
             <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
@@ -358,50 +313,36 @@ export default function Countries() {
           {/* All LGAs grid */}
           <div className="space-y-3 sm:space-y-4">
             <h2 className="font-bold text-base sm:text-lg">
-              All LGAs ({(bornoData?.lgas.length ?? 8) + (adamawaData?.lgas.length ?? 7) + (yobeData?.lgas.length ?? Object.values(bayStates['YB'].lgas).length)})
+              All LGAs ({hasData ? computeSummary(allRows).totalLGAs : Object.values(bayStates).reduce((s, st) => s + Object.keys(st.lgas).length, 0)})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {statesData.map(state => (
                 <div key={state.code} className="space-y-2 sm:space-y-3">
                   <h3 className="font-bold text-xs sm:text-sm text-muted-foreground uppercase flex items-center gap-2">
                     {state.name} State
-                    {state.code === 'BN' && bornoData && (
-                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent normal-case">
-                        {bornoData.lgas.length} LGAs · Live Data
-                      </span>
-                    )}
-                    {state.code === 'AD' && adamawaData && (
-                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 normal-case">
-                        {adamawaData.lgas.length} LGAs · Live Data
-                      </span>
-                    )}
-                    {state.code === 'YB' && yobeData && (
-                      <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 normal-case">
-                        {yobeData.lgas.length} LGAs · Live Data
-                      </span>
-                    )}
+                    {(() => {
+                      const stateMap = state.code === 'BN' ? bornoLGAMap : state.code === 'AD' ? adamawaLGAMap : yobeLGAMap
+                      const color = state.code === 'BN' ? 'accent' : state.code === 'AD' ? 'blue-400' : 'purple-400'
+                      const bg = state.code === 'BN' ? 'accent/20' : state.code === 'AD' ? 'blue-500/20' : 'purple-500/20'
+                      return stateMap.size > 0 ? (
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded bg-${bg} text-${color} normal-case`}>
+                          {stateMap.size} LGAs · Live Data
+                        </span>
+                      ) : null
+                    })()}
                   </h3>
                   <div className="space-y-2 sm:space-y-3">
-                    {state.code === 'BN' && bornoData ? (
-                      bornoData.lgas.map(lgaName => {
-                        const rows = bornoLGAMap.get(lgaName) ?? []
-                        return <BornoSheetLGACard key={lgaName} rows={rows} />
-                      })
-                    ) : state.code === 'AD' && adamawaData ? (
-                      adamawaData.lgas.map(lgaName => {
-                        const rows = adamawaLGAMap.get(lgaName) ?? []
-                        return <BornoSheetLGACard key={lgaName} rows={rows as unknown as BornoRow[]} />
-                      })
-                    ) : state.code === 'YB' && yobeData ? (
-                      yobeData.lgas.map(lgaName => {
-                        const rows = yobeLGAMap.get(lgaName) ?? []
-                        return <BornoSheetLGACard key={lgaName} rows={rows} />
-                      })
-                    ) : (
-                      Object.values(state.lgas).map((lga) => (
+                    {(() => {
+                      const stateMap = state.code === 'BN' ? bornoLGAMap : state.code === 'AD' ? adamawaLGAMap : yobeLGAMap
+                      if (stateMap.size > 0) {
+                        return [...stateMap.entries()].map(([lgaName, rows]) => (
+                          <BornoSheetLGACard key={lgaName} rows={rows} />
+                        ))
+                      }
+                      return Object.values(state.lgas).map((lga) => (
                         <LGACard key={lga.code} lga={lga} state={state.name} />
                       ))
-                    )}
+                    })()}
                   </div>
                 </div>
               ))}

@@ -23,9 +23,8 @@ import {
 import { ArrowLeft, Download, Share2, TrendingUp } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { Sparkline, Skeleton } from '@/components/ui/animations'
-import type { BornoData } from '@/app/api/sheets/borno/route'
-import type { AdamawaData } from '@/app/api/sheets/adamawa/route'
-import type { YobeData } from '@/app/api/sheets/yobe/route'
+import type { MasterRow, ApiResponse } from '@/lib/api-types'
+import { computeSummary, getUniqueIndicators } from '@/lib/api-types'
 
 // Mock data for countries
 const countryDetails: Record<string, any> = {
@@ -130,10 +129,10 @@ const ZONE_COLORS: Record<string, string> = {
 }
 const LOWER_IS_BETTER = new Set(['Unemployment Rate', 'Displacement', 'Conflict Incidents', 'Out-of-school Gap', 'Voter Card Gap'])
 
-const STATE_CONFIG: Record<string, { name: string; region: string; apiUrl: string; accentColor: string }> = {
-  bn: { name: 'Borno State', region: 'Northeast Nigeria', apiUrl: '/api/sheets/borno', accentColor: '#f4b942' },
-  ad: { name: 'Adamawa State', region: 'Northeast Nigeria', apiUrl: '/api/sheets/adamawa', accentColor: '#6ec6e8' },
-  yb: { name: 'Yobe State', region: 'Northeast Nigeria', apiUrl: '/api/sheets/yobe', accentColor: '#8b5cf6' },
+const STATE_CONFIG: Record<string, { name: string; stateName: string; region: string; accentColor: string }> = {
+  bn: { name: 'Borno State', stateName: 'Borno', region: 'Northeast Nigeria', accentColor: '#f4b942' },
+  ad: { name: 'Adamawa State', stateName: 'Adamawa', region: 'Northeast Nigeria', accentColor: '#6ec6e8' },
+  yb: { name: 'Yobe State', stateName: 'Yobe', region: 'Northeast Nigeria', accentColor: '#8b5cf6' },
 }
 
 function fmtVal(value: number, indicator: string): string {
@@ -145,17 +144,19 @@ function fmtVal(value: number, indicator: string): string {
 function StateDetailPage({ stateCode }: { stateCode: string }) {
   const router = useRouter()
   const config = STATE_CONFIG[stateCode]
-  const [stateData, setStateData] = useState<BornoData | AdamawaData | YobeData | null>(null)
+  const [rows, setRows] = useState<MasterRow[]>([])
   const [selectedYear, setSelectedYear] = useState<'y2022' | 'y2023' | 'y2024' | 'y2025'>('y2025')
   const [selectedIndicator, setSelectedIndicator] = useState('Displacement')
 
   useEffect(() => {
-    fetch(config.apiUrl).then(r => r.json()).then(setStateData).catch(() => {})
-  }, [config.apiUrl])
+    fetch(`/api/data?state=${config.stateName.toLowerCase()}`)
+      .then(r => r.json())
+      .then((d: ApiResponse<MasterRow>) => setRows(d.data ?? []))
+      .catch(() => {})
+  }, [config.stateName])
 
-  const rows = stateData?.rows ?? []
-  const indicators = stateData?.indicators ?? []
-  const summary = stateData?.summary
+  const indicators = useMemo(() => getUniqueIndicators(rows), [rows])
+  const summary = useMemo(() => computeSummary(rows), [rows])
 
   // LGA rows for selected indicator, sorted
   const filteredRows = useMemo(() =>
@@ -184,9 +185,9 @@ function StateDetailPage({ stateCode }: { stateCode: string }) {
 
   // Zone comparison data
   const zoneData = useMemo(() => {
-    const zones = ['Conflict-Affected', 'Stable/Urban', 'Semi-Stable']
+    const zones = ['High Risk', 'Medium Risk', 'Low Risk']
     return zones.map(zone => {
-      const zoneRows = rows.filter(r => r.indicator === selectedIndicator && r.zone === zone)
+      const zoneRows = rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === zone)
       const avg = zoneRows.length ? zoneRows.reduce((s, r) => s + r[selectedYear], 0) / zoneRows.length : 0
       return { zone: zone.split('/')[0], value: parseFloat(avg.toFixed(1)), color: ZONE_COLORS[zone] }
     })
@@ -310,7 +311,7 @@ function StateDetailPage({ stateCode }: { stateCode: string }) {
           <span className="text-right w-16 hidden sm:block">Trend</span>
         </div>
 
-        {!stateData ? (
+        {rows.length === 0 ? (
           Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-3 border-b border-border/40 items-center">
               <Skeleton className="h-3 w-28" />

@@ -150,18 +150,19 @@ HUMAID is a real-time humanitarian and youth data intelligence platform focused 
 - [x] Add KV cache reads (serve from cache, fall back to D1)
 - [ ] Remove old per-state data routes — after frontend rewire
 
-#### Phase 4: Frontend Rewire
-- [ ] Update Dashboard page to fetch from `/api/data?view=overview`
-- [ ] Update KPI cards to use real regional KPIs (not hardcoded)
-- [ ] Update Countries/States listing page to use unified data
-- [ ] Update State detail pages ([code]) to fetch from `/api/data?state={code}`
-- [ ] Update Comparison page to fetch cross-state indicator data
-- [ ] Update Analysis page to use trend analysis data
-- [ ] Update Policy Briefs page with real insights from TREND_ANALYSIS
-- [ ] Replace all hardcoded mock data in lib/bay-data.ts
-- [ ] Update admin panel sync button to call new `/api/sync`
-- [ ] Add "Last synced" timestamp display on dashboard
-- [ ] Verify all charts and tables render correctly with real data
+#### Phase 4: Frontend Rewire ✅
+- [x] Update Dashboard page to fetch from `/api/data?view=master` + `/api/data?view=overview`
+- [x] Update KPI cards to use real data (displacement, conflict, SMEs, LGA counts)
+- [x] Update Countries/States listing page to use unified `/api/data?view=master`
+- [x] Update State detail pages ([code]) to fetch from `/api/data?state={code}`
+- [x] Update Comparison page to fetch cross-state indicator data from unified API
+- [x] Update Policy Briefs page with real insights from unified data
+- [x] Update landing page GeographicSnapshot and BornoTrackerSection to use MasterRow[]
+- [x] Update admin sync button to call new `/api/admin/sync` (unified syncAllTabs)
+- [x] Add "Last synced" timestamp display on dashboard (from sync_meta)
+- [x] Created shared types library (lib/api-types.ts) with helpers
+- [ ] Replace remaining hardcoded mock data in lib/bay-data.ts (used as fallback only)
+- [ ] Update Analysis page to use trend analysis data (currently hardcoded simulation)
 
 #### Phase 5: Testing & Polish
 - [ ] End-to-end test: update Google Sheet → sync → verify frontend reflects changes

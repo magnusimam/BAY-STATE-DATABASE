@@ -14,7 +14,8 @@ import {
 import {
   Textarea,
 } from '@/components/ui/textarea'
-import type { BornoData } from '@/app/api/sheets/borno/route'
+import type { MasterRow, ApiResponse } from '@/lib/api-types'
+import { computeSummary } from '@/lib/api-types'
 import {
   Download,
   Share2,
@@ -310,35 +311,41 @@ function BriefCard({
 export default function PolicyBriefs() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState('all')
-  const [bornoData, setBornoData] = useState<BornoData | null>(null)
+  const [allRows, setAllRows] = useState<MasterRow[]>([])
 
   useEffect(() => {
-    fetch('/api/sheets/borno').then(r => r.json()).then(setBornoData).catch(() => {})
+    fetch('/api/data?view=master')
+      .then(r => r.json())
+      .then((d: ApiResponse<MasterRow>) => setAllRows(d.data ?? []))
+      .catch(() => {})
   }, [])
 
   const livePolicyBriefs = useMemo(() => {
-    if (!bornoData) return policyBriefs
-    const unemployRows = bornoData.rows.filter(r => r.indicator === 'Unemployment Rate')
+    if (!allRows.length) return policyBriefs
+    const bornoRows = allRows.filter(r => r.state === 'Borno')
+    const summary = computeSummary(bornoRows)
+    const unemployRows = bornoRows.filter(r => r.indicator === 'Unemployment Rate')
     const avgUnemployment = unemployRows.length
       ? +(unemployRows.reduce((s, r) => s + r.y2025, 0) / unemployRows.length).toFixed(1)
       : 48.2
-    const totalConflict = bornoData.summary.totalConflict2025.toLocaleString()
-    const totalDisplaced = bornoData.summary.totalDisplacement2025.toLocaleString()
+    const totalConflict = summary.totalConflict2025.toLocaleString()
+    const totalDisplaced = summary.totalDisplacement2025.toLocaleString()
+    const totalLGAs = summary.totalLGAs
     return policyBriefs.map(b =>
       b.id === 1
         ? {
             ...b,
             keyPoints: [
-              `27 LGAs tracked across Conflict-Affected, Semi-Stable & Stable zones`,
-              `${totalDisplaced} displacement incidents recorded across conflict-affected LGAs (2025)`,
+              `${totalLGAs} LGAs tracked across High, Medium & Low Risk zones`,
+              `${totalDisplaced} displacement incidents recorded across high-risk LGAs (2025)`,
               `${totalConflict} conflict incidents logged in 2025 tracker`,
-              `Average youth unemployment at ${avgUnemployment}% — live from Borno tracker`,
+              `Average youth unemployment at ${avgUnemployment}% — live from unified tracker`,
             ],
-            summary: `Borno State's performance tracker (2022–2025) covers 27 LGAs across three conflict zones. In 2025, ${totalConflict} conflict incidents were recorded alongside ${totalDisplaced} displacement cases. Youth unemployment averages ${avgUnemployment}%, with the highest rates concentrated in Conflict-Affected LGAs. Immediate interventions targeting displacement response and economic resilience are critical.`,
+            summary: `Borno State's performance tracker (2022–2025) covers ${totalLGAs} LGAs across three risk zones. In 2025, ${totalConflict} conflict incidents were recorded alongside ${totalDisplaced} displacement cases. Youth unemployment averages ${avgUnemployment}%, with the highest rates concentrated in High Risk LGAs. Immediate interventions targeting displacement response and economic resilience are critical.`,
           }
         : b
     )
-  }, [bornoData])
+  }, [allRows])
 
   const filteredBriefs = livePolicyBriefs.filter(brief => {
     if (selectedFilter === 'published') return brief.status === 'Published'
