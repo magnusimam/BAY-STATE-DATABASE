@@ -46,7 +46,10 @@
       "Bash(find 'C:\\\\Users\\\\user\\\\BAY STATE INTELLIGENCE\\\\BAY-STATE-DATABASE' -type f -name .env* -o -name *.example)",
       "Bash(find 'C:\\\\Users\\\\user\\\\BAY STATE INTELLIGENCE\\\\BAY-STATE-DATABASE' -type f -maxdepth 2 \\\\\\(-name README* -o -name *.md \\\\\\) -not -path */node_modules/*)",
       "Bash(python3 -c \":*)",
-      "Bash(npx sharp-cli:*)"
+      "Bash(npx sharp-cli:*)",
+      "Bash(which bun:*)",
+      "Bash(bun --version)",
+      "Bash(npm ls:*)"
     ]
   }
 }
