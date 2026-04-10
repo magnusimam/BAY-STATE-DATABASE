@@ -66,6 +66,7 @@
     "vaul": "^1.1.2",
     "zod": "3.25.76"
   },
+  "packageManager": "npm@10.9.2",
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260317.1",
     "@opennextjs/cloudflare": "^1.18.0",
