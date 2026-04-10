@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a0a0f"/>
+  <circle cx="256" cy="220" r="120" fill="none" stroke="#f4b942" stroke-width="24"/>
+  <path d="M176 220 A80 80 0 0 1 336 220" fill="none" stroke="#6ec6e8" stroke-width="16"/>
+  <circle cx="256" cy="220" r="8" fill="#f4b942"/>
+  <line x1="256" y1="212" x2="256" y2="170" stroke="#f4b942" stroke-width="8" stroke-linecap="round"/>
+  <line x1="256" y1="220" x2="296" y2="240" stroke="#6ec6e8" stroke-width="6" stroke-linecap="round"/>
+  <text x="256" y="400" text-anchor="middle" fill="#f4b942" font-family="Arial, sans-serif" font-weight="bold" font-size="72">HUMAID</text>
+</svg>

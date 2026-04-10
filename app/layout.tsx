@@ -10,6 +10,13 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'HUMAID - Humanitarian & Youth Data Intelligence',
   description: 'Real-time data intelligence platform for humanitarian and youth initiatives in BAY States, Northeast Nigeria',
+  manifest: '/manifest.json',
+  themeColor: '#f4b942',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'HUMAID',
+  },
   icons: {
     icon: [
       {
@@ -25,7 +32,10 @@ export const metadata: Metadata = {
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/icons/icon-192x192.png',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
   },
 }
 
