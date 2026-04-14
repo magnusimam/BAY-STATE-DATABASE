@@ -51,7 +51,30 @@
       "Bash(bun --version)",
       "Bash(npm ls:*)",
       "Bash(bun install:*)",
-      "Bash(npx --yes bun install)"
+      "Bash(npx --yes bun install)",
+      "Bash(rm -f bun.lock)",
+      "Bash(npx bun@1.2.15 install)",
+      "Bash(npx create-expo-app@latest BAY-STATE-MOBILE --template tabs)",
+      "Bash(npx tsc:*)",
+      "Bash(npx expo:*)",
+      "Bash(node -e \"const pkg = require\\('firebase/package.json'\\); console.log\\(pkg.version\\);\")",
+      "Bash(node -e \"try { const m = require\\('firebase/auth/react-native'\\); console.log\\(Object.keys\\(m\\).filter\\(k => k.includes\\('Persist'\\)\\)\\); } catch\\(e\\) { console.log\\('not found:', e.message\\); }\")",
+      "Bash(node -e \"const m = require\\('firebase/auth'\\); console.log\\(Object.keys\\(m\\).filter\\(k => k.toLowerCase\\(\\).includes\\('persist'\\)\\)\\);\")",
+      "Bash(gh repo:*)",
+      "Bash(where gh:*)",
+      "Bash(node scripts/generate-icons.js)",
+      "Bash(tasklist)",
+      "Bash(node -e \"const m = require\\('@react-native-async-storage/async-storage'\\); console.log\\(typeof m.default, typeof m.createAsyncStorage\\);\")",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\);const p=JSON.parse\\(d\\);console.log\\(p.version\\);\")",
+      "Bash(node -e \"const p=require\\('@react-native-async-storage/async-storage/package.json'\\); console.log\\(p.version\\);\")",
+      "Bash(npm uninstall:*)",
+      "Bash(rm -rf node_modules/expo-auth-session node_modules/expo-web-browser node_modules/expo-secure-store)",
+      "Bash(rm -rf .expo)",
+      "Bash(NEXT_BUILD_COMMAND=\"npm run build\" npx opennextjs-cloudflare build)",
+      "Bash(where bun:*)",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total rows:',j.data.length\\);const inds=[...new Set\\(j.data.map\\(r=>r.indicator\\)\\)];console.log\\('Indicators:',inds\\);const states=[...new Set\\(j.data.map\\(r=>r.state\\)\\)];console.log\\('States:',states\\);console.log\\('Sample row:',JSON.stringify\\(j.data[0]\\)\\);}\\)\")",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total rows:',j.data.length\\);if\\(j.data.length>0\\){console.log\\('Sample:',JSON.stringify\\(j.data[0]\\)\\);console.log\\('Metrics:',[...new Set\\(j.data.map\\(r=>r.metric\\)\\)]\\);}}\\)\")",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total:',j.data.length\\);if\\(j.data[0]\\)console.log\\('Sample:',JSON.stringify\\(j.data[0]\\)\\);}\\)\")"
     ]
   }
 }
