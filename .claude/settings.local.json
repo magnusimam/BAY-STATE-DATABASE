@@ -80,7 +80,9 @@
       "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('error:',JSON.stringify\\(o.error,null,2\\)\\);console.log\\('logs:',o.logsUrl||'none'\\)}\\)\")",
       "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\(Object.keys\\(o\\).join\\('\\\\n'\\)\\);console.log\\('---'\\);console.log\\('logFiles:',JSON.stringify\\(o.logFiles\\)\\);console.log\\('buildLogsUrl:',o.buildLogsUrl\\)}\\)\")",
       "Bash(node -e ' *)",
-      "Bash(npx expo-doctor *)"
+      "Bash(npx expo-doctor *)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('queuePosition:',o.queuePosition ?? 'n/a'\\);console.log\\('createdAt:',o.createdAt\\);console.log\\('estimatedWaitTime:',o.estimatedWaitTimeLeftSeconds ?? 'n/a'\\)}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('queuePosition:',o.queuePosition ?? 'n/a'\\);console.log\\('estimatedWait:',o.estimatedWaitTimeLeftSeconds ?? 'n/a',o.estimatedWaitTimeLeftSeconds ? 'sec \\('+\\(o.estimatedWaitTimeLeftSeconds/60\\).toFixed\\(0\\)+' min\\)' : ''\\);console.log\\('buildUrl:',o.artifacts?.buildUrl ?? 'none'\\)}\\)\")"
     ]
   }
 }
