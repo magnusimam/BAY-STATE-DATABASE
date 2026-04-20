@@ -15,6 +15,7 @@ import {
   Menu,
   ExternalLink,
 } from 'lucide-react'
+import { HumaidLogo } from '@/components/humaid-logo'
 import { AdminProtectedRoute } from '@/components/auth/admin-protected-route'
 import { useAuth } from '@/lib/auth-context'
 
@@ -42,9 +43,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex w-64 border-r border-border bg-[#0f1214] flex-col flex-shrink-0">
         <div className="p-6 border-b border-border">
           <Link href="/admin" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded bg-accent flex items-center justify-center">
-              <Globe className="h-5 w-5 text-accent-foreground" />
-            </div>
+            <HumaidLogo size={32} className="h-8 w-8 rounded" />
             <div>
               <span className="font-bold text-sm">HUMAID</span>
               <span className="text-[10px] text-muted-foreground block -mt-0.5">Admin Panel</span>
@@ -107,9 +106,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="h-full flex flex-col">
             <div className="p-6 border-b border-border">
               <Link href="/admin" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded bg-accent flex items-center justify-center">
-                  <Globe className="h-5 w-5 text-accent-foreground" />
-                </div>
+                <HumaidLogo size={32} className="h-8 w-8 rounded" />
                 <div>
                   <span className="font-bold text-sm text-white">HUMAID</span>
                   <span className="text-[10px] text-white/50 block -mt-0.5">Admin Panel</span>

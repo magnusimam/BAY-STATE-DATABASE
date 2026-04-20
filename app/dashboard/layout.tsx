@@ -30,6 +30,7 @@ import {
   Briefcase,
   Brain,
 } from 'lucide-react'
+import { HumaidLogo } from '@/components/humaid-logo'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { DashboardLayoutSkeleton } from './layout-skeleton' // Import DashboardLayoutSkeleton
@@ -72,9 +73,7 @@ function DashboardContent({
           {/* Logo */}
           <div className="p-4 sm:p-6 border-b border-border">
             <Link href="/" className="inline-flex items-center gap-2">
-              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded bg-accent flex items-center justify-center">
-                <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-accent-foreground" />
-              </div>
+              <HumaidLogo size={32} className="h-7 w-7 sm:h-8 sm:w-8 rounded" />
               <span className="font-bold text-sm sm:text-base">HUMAID</span>
             </Link>
           </div>
@@ -125,9 +124,7 @@ function DashboardContent({
               {/* Logo */}
               <div className="p-6 border-b border-white/10">
                 <Link href="/" className="inline-flex items-center gap-2">
-                  <div className="h-8 w-8 rounded bg-accent flex items-center justify-center shadow-lg shadow-accent/30">
-                    <Globe className="h-5 w-5 text-accent-foreground" />
-                  </div>
+                  <HumaidLogo size={32} className="h-8 w-8 rounded shadow-lg shadow-accent/30" />
                   <span className="font-bold text-white">HUMAID</span>
                 </Link>
               </div>

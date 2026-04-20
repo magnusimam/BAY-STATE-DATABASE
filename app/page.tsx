@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowRight, TrendingUp, Users, Globe, Zap, Heart, Shield, BookOpen, Quote } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { AnimatedCounter, FadeIn, Sparkline, PulseDot, Skeleton } from '@/components/ui/animations'
+import { HumaidLogo } from '@/components/humaid-logo'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
 import { computeSummary, fetchJson } from '@/lib/api-types'
 import type { ElementStyle } from '@/lib/use-admin-content'
@@ -95,9 +96,7 @@ function Header() {
     <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-10 sm:top-16 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded bg-accent flex items-center justify-center">
-            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-accent-foreground" />
-          </div>
+          <HumaidLogo size={32} className="h-7 w-7 sm:h-8 sm:w-8 rounded-md" />
           <span className="font-bold text-base sm:text-lg">HUMAID</span>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm">
@@ -497,7 +496,7 @@ function FooterSection({ content }: { content: SiteContent }) {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-12">
           <div className="col-span-2 sm:col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-5 w-5 sm:h-6 sm:w-6 rounded flex items-center justify-center" style={{ backgroundColor: accent }}><Globe className="h-3 w-3 sm:h-4 sm:w-4 text-black" /></div>
+              <HumaidLogo size={24} className="h-5 w-5 sm:h-6 sm:w-6 rounded" />
               <span className="font-bold text-sm sm:text-base">HUMAID</span>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">{content.footer.tagline}</p>

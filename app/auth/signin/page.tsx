@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Globe, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { HumaidLogo } from '@/components/humaid-logo'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 
@@ -139,9 +140,7 @@ export default function SignIn() {
         {/* Header */}
         <div className="text-center space-y-3 sm:space-y-4">
           <Link href="/" className="inline-flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 group">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:shadow-amber-500/40 transition-shadow">
-              <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-            </div>
+            <HumaidLogo size={48} className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl shadow-lg shadow-amber-500/25 group-hover:shadow-amber-500/40 transition-shadow" />
             <span className="font-bold text-lg sm:text-xl text-white">HUMAID</span>
           </Link>
 
