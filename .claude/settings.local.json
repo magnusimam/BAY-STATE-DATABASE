@@ -74,7 +74,13 @@
       "Bash(where bun:*)",
       "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total rows:',j.data.length\\);const inds=[...new Set\\(j.data.map\\(r=>r.indicator\\)\\)];console.log\\('Indicators:',inds\\);const states=[...new Set\\(j.data.map\\(r=>r.state\\)\\)];console.log\\('States:',states\\);console.log\\('Sample row:',JSON.stringify\\(j.data[0]\\)\\);}\\)\")",
       "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total rows:',j.data.length\\);if\\(j.data.length>0\\){console.log\\('Sample:',JSON.stringify\\(j.data[0]\\)\\);console.log\\('Metrics:',[...new Set\\(j.data.map\\(r=>r.metric\\)\\)]\\);}}\\)\")",
-      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total:',j.data.length\\);if\\(j.data[0]\\)console.log\\('Sample:',JSON.stringify\\(j.data[0]\\)\\);}\\)\")"
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d.join\\(''\\)\\);console.log\\('Total:',j.data.length\\);if\\(j.data[0]\\)console.log\\('Sample:',JSON.stringify\\(j.data[0]\\)\\);}\\)\")",
+      "Bash(npx eas-cli *)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('error:',JSON.stringify\\(o.error,null,2\\)\\)}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('error:',JSON.stringify\\(o.error,null,2\\)\\);console.log\\('logs:',o.logsUrl||'none'\\)}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\(Object.keys\\(o\\).join\\('\\\\n'\\)\\);console.log\\('---'\\);console.log\\('logFiles:',JSON.stringify\\(o.logFiles\\)\\);console.log\\('buildLogsUrl:',o.buildLogsUrl\\)}\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(npx expo-doctor *)"
     ]
   }
 }
