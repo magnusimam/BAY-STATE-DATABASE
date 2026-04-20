@@ -10,7 +10,7 @@ import { X, Smartphone, Download, Sparkles } from 'lucide-react'
 // `npx eas-cli build:view <build-id>`.
 const APK_URL =
   process.env.NEXT_PUBLIC_APK_URL ??
-  'https://expo.dev/artifacts/eas/mwk61SJNnN79Fzp8UsELE.apk'
+  'https://expo.dev/artifacts/eas/qgjqUnihkpaGmSXdY4CTvt.apk'
 
 const STORAGE_KEY = 'humaid-app-promo-dismissed'
 const PILL_SESSION_KEY = 'humaid-app-pill-dismissed'
