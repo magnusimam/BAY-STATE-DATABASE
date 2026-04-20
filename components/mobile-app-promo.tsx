@@ -13,23 +13,51 @@ const APK_URL =
   'https://expo.dev/artifacts/eas/mwk61SJNnN79Fzp8UsELE.apk'
 
 const STORAGE_KEY = 'humaid-app-promo-dismissed'
+const PILL_SESSION_KEY = 'humaid-app-pill-dismissed'
 const SHOW_DELAY_MS = 1800
+const PILL_DELAY_MS = 400
 
 export function MobileAppPromo() {
   const [open, setOpen] = useState(false)
+  const [showPill, setShowPill] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (window.localStorage.getItem(STORAGE_KEY) === '1') return
-    const t = setTimeout(() => setOpen(true), SHOW_DELAY_MS)
-    return () => clearTimeout(t)
+    const popupDismissed = window.localStorage.getItem(STORAGE_KEY) === '1'
+    const pillDismissed = window.sessionStorage.getItem(PILL_SESSION_KEY) === '1'
+
+    if (!popupDismissed) {
+      const t = setTimeout(() => setOpen(true), SHOW_DELAY_MS)
+      return () => clearTimeout(t)
+    }
+    if (!pillDismissed) {
+      const t = setTimeout(() => setShowPill(true), PILL_DELAY_MS)
+      return () => clearTimeout(t)
+    }
   }, [])
 
   const dismiss = (persist: boolean) => {
     if (persist && typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, '1')
+      // After the main popup is dismissed, always offer the pill unless they've
+      // already session-dismissed it.
+      if (window.sessionStorage.getItem(PILL_SESSION_KEY) !== '1') {
+        setTimeout(() => setShowPill(true), 450)
+      }
     }
     setOpen(false)
+  }
+
+  const dismissPill = () => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(PILL_SESSION_KEY, '1')
+    }
+    setShowPill(false)
+  }
+
+  const reopenFromPill = () => {
+    setShowPill(false)
+    setOpen(true)
   }
 
   return (
@@ -126,6 +154,32 @@ export function MobileAppPromo() {
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+
+      {/* Persistent floating pill — shows after popup dismissed so users can
+          always get the app later without digging through navigation. */}
+      {showPill && !open ? (
+        <div className="pointer-events-none fixed bottom-5 right-5 z-40 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+          <div className="pointer-events-auto group flex items-stretch overflow-hidden rounded-full border border-[#f4b942]/40 bg-gradient-to-br from-[#1a1309]/95 to-[#0a0a0f]/95 shadow-[0_8px_30px_-6px_rgba(244,185,66,0.4)] backdrop-blur-sm transition hover:border-[#f4b942]/70 hover:shadow-[0_12px_40px_-6px_rgba(244,185,66,0.6)]">
+            <button
+              type="button"
+              onClick={reopenFromPill}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-[#f4b942] focus:outline-none focus:ring-2 focus:ring-[#f4b942]/50"
+              aria-label="Get the HUMAID Android app"
+            >
+              <Smartphone className="h-4 w-4" />
+              <span>Get App</span>
+            </button>
+            <button
+              type="button"
+              onClick={dismissPill}
+              className="flex items-center justify-center border-l border-[#f4b942]/20 px-2.5 text-zinc-500 transition hover:bg-white/5 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+              aria-label="Hide until next visit"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </Dialog.Root>
   )
 }
