@@ -82,7 +82,8 @@
       "Bash(node -e ' *)",
       "Bash(npx expo-doctor *)",
       "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('queuePosition:',o.queuePosition ?? 'n/a'\\);console.log\\('createdAt:',o.createdAt\\);console.log\\('estimatedWaitTime:',o.estimatedWaitTimeLeftSeconds ?? 'n/a'\\)}\\)\")",
-      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('queuePosition:',o.queuePosition ?? 'n/a'\\);console.log\\('estimatedWait:',o.estimatedWaitTimeLeftSeconds ?? 'n/a',o.estimatedWaitTimeLeftSeconds ? 'sec \\('+\\(o.estimatedWaitTimeLeftSeconds/60\\).toFixed\\(0\\)+' min\\)' : ''\\);console.log\\('buildUrl:',o.artifacts?.buildUrl ?? 'none'\\)}\\)\")"
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('queuePosition:',o.queuePosition ?? 'n/a'\\);console.log\\('estimatedWait:',o.estimatedWaitTimeLeftSeconds ?? 'n/a',o.estimatedWaitTimeLeftSeconds ? 'sec \\('+\\(o.estimatedWaitTimeLeftSeconds/60\\).toFixed\\(0\\)+' min\\)' : ''\\);console.log\\('buildUrl:',o.artifacts?.buildUrl ?? 'none'\\)}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const o=JSON.parse\\(d\\);console.log\\('status:',o.status\\);console.log\\('queuePosition:',o.queuePosition ?? 'n/a'\\);console.log\\('estimatedWait:',o.estimatedWaitTimeLeftSeconds ? \\(o.estimatedWaitTimeLeftSeconds/60\\).toFixed\\(0\\)+' min' : 'n/a'\\);console.log\\('apk:',o.artifacts?.buildUrl ?? 'none'\\)}\\)\")"
     ]
   }
 }
