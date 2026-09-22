@@ -1,9 +1,11 @@
 /**
- * Unified Google Sheet sync — fetches all 6 tabs from the BAY Sub-Regional
- * Youth Peace & Security Tracker and writes to D1 + KV.
+ * Unified Google Sheet sync — fetches all 6 tabs from the Nigeria Youth
+ * Peace & Security Tracker and writes to D1 + KV. States are synced as
+ * their data is added to the sheet; no fixed state list is assumed.
  */
 
 import { getCloudflareContext } from '@opennextjs/cloudflare'
+import { nigeriaStates } from './nigeria-states'
 
 // ── Sheet Config ─────────────────────────────────────────────────────────────
 
@@ -113,44 +115,37 @@ async function syncMasterData(db: D1Database): Promise<number> {
 
 async function syncRegionalOverview(db: D1Database): Promise<number> {
   const rows = await fetchTab('REGIONAL_OVERVIEW')
+  // Header: Section | Metric | State | 2022 | 2023 | 2024 | 2025 | Trend
+  // Long format — one row per (section, metric, state), so any number of states can be
+  // synced without schema changes. State 'National' holds the all-Nigeria aggregate row.
+  const headerIdx = rows.findIndex(r => r.some(c => c.trim().toUpperCase() === 'STATE'))
+  if (headerIdx === -1) return 0
+
+  const dataRows = rows.slice(headerIdx + 1).filter(r => r.length >= 7 && r[0]?.trim() && r[2]?.trim())
+
   await db.prepare('DELETE FROM regional_overview').run()
 
-  let section = 'kpi'
-  let count = 0
-  const stmts: D1PreparedStatement[] = []
-
-  for (const r of rows) {
-    const first = (r[0] ?? '').trim().toUpperCase()
-    // Detect section headers
-    if (first.includes('SECTION A') || first.includes('SUB-REGIONAL KPIS')) { section = 'kpi'; continue }
-    if (first.includes('SECTION B') || first.includes('PERFORMANCE BY RISK')) { section = 'zone_performance'; continue }
-    if (first.includes('SECTION C') || first.includes('PROGRESS SCORECARD')) { section = 'scorecard'; continue }
-    // Skip header rows and empty rows
-    if (!r[0]?.trim() || first.includes('METRIC') || first.includes('KPI') || first.includes('INDICATOR')) continue
-
-    stmts.push(
+  const batchSize = 50
+  for (let i = 0; i < dataRows.length; i += batchSize) {
+    const batch = dataRows.slice(i, i + batchSize)
+    const stmts = batch.map(r =>
       db.prepare(
-        'INSERT INTO regional_overview (section, metric, borno, adamawa, yobe, bay_combined, bay_2022, bay_2023, bay_2024, bay_2025, trend, raw_row) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO regional_overview (section, metric, state, y2022, y2023, y2024, y2025, trend, raw_row) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ).bind(
-        section,
         r[0].trim(),
-        parseNum(r[1] ?? ''),
-        parseNum(r[2] ?? ''),
-        parseNum(r[3] ?? ''),
-        parseNum(r[4] ?? ''),
-        parseNum(r[5] ?? ''),
-        parseNum(r[6] ?? ''),
-        parseNum(r[7] ?? ''),
-        parseNum(r[8] ?? ''),
-        (r[9] ?? '').trim(),
+        r[1].trim(),
+        r[2].trim(),
+        parseNum(r[3]),
+        parseNum(r[4]),
+        parseNum(r[5]),
+        parseNum(r[6]),
+        (r[7] ?? '').trim(),
         r.join('|')
       )
     )
-    count++
+    await db.batch(stmts)
   }
-
-  if (stmts.length > 0) await db.batch(stmts)
-  return count
+  return dataRows.length
 }
 
 async function syncLgaProfiles(db: D1Database): Promise<number> {
@@ -198,9 +193,8 @@ async function syncTrendAnalysis(db: D1Database): Promise<number> {
     if (first.includes('SECTION A') || first.includes('PROGRESS SUMMARY')) { section = 'progress'; continue }
     if (first.includes('SECTION B') || first.includes('ZONE-TYPE')) { section = 'zone_comparison'; continue }
     if (first.includes('SECTION C') || first.includes('KEY INSIGHTS')) { section = 'insights'; continue }
-    if (first.includes('BORNO')) currentState = 'Borno'
-    if (first.includes('ADAMAWA')) currentState = 'Adamawa'
-    if (first.includes('YOBE')) currentState = 'Yobe'
+    const matchedState = Object.values(nigeriaStates).find(s => first.includes(s.name.toUpperCase()))
+    if (matchedState) currentState = matchedState.name
     if (!r[0]?.trim()) continue
 
     stmts.push(
@@ -290,9 +284,13 @@ async function syncMethodology(db: D1Database): Promise<number> {
 const KV_TTL = 5 * 60 // 5 minutes
 
 async function cacheToKV(kv: KVNamespace, db: D1Database): Promise<void> {
-  // Cache master_data grouped by state for fast frontend reads
-  const states = ['Borno', 'Adamawa', 'Yobe']
-  for (const state of states) {
+  // Cache master_data grouped by state for fast frontend reads.
+  // Discover states from the synced data itself so this scales to however many states
+  // currently have rows, instead of a fixed list.
+  const { results: stateRows } = await db
+    .prepare('SELECT DISTINCT state FROM master_data')
+    .all<{ state: string }>()
+  for (const { state } of stateRows) {
     const { results } = await db
       .prepare('SELECT * FROM master_data WHERE state = ?')
       .bind(state)

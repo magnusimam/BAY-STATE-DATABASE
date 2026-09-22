@@ -15,19 +15,12 @@ import defaultContent from '@/lib/site-content.json'
 
 type SiteContent = typeof defaultContent
 
-// BAY States live indicators
+// National live indicators
 const liveIndicators = [
   { label: 'People in Need', value: '7.25M', change: '+1.8%', color: '#f4b942' },
   { label: 'Displaced Persons', value: '3.48M', change: '+0.9%', color: '#6ec6e8' },
   { label: 'Active Programs', value: '1,167', change: '+3.2%', color: '#22c55e' },
   { label: 'LGAs Covered', value: '23', change: 'all areas', color: '#8b5cf6' },
-]
-
-// BAY States data
-const bayStatesData = [
-  { code: 'BN', name: 'Borno', region: 'Northeast Nigeria', need: 3.32, population: '4.25M', severity: 91 },
-  { code: 'AD', name: 'Adamawa', region: 'Northeast Nigeria', need: 2.15, population: '3.79M', severity: 76 },
-  { code: 'YB', name: 'Yobe', region: 'Northeast Nigeria', need: 1.78, population: '2.43M', severity: 86 },
 ]
 
 // Helper to get element style
@@ -244,19 +237,20 @@ function IndicatorCards({ content, styles }: { content: SiteContent; styles: Rec
   )
 }
 
-function GeographicSnapshot({ content, styles, bornoData, adamawaData, yobeData }: { content: SiteContent; styles: Record<string, ElementStyle>; bornoData: MasterRow[]; adamawaData: MasterRow[]; yobeData: MasterRow[] }) {
+function GeographicSnapshot({ content, styles, allRows }: { content: SiteContent; styles: Record<string, ElementStyle>; allRows: MasterRow[] }) {
   const accent = content.colors?.accent ?? '#f4b942'
-  const borno = bornoData.length ? computeSummary(bornoData) : null
-  const adamawa = adamawaData.length ? computeSummary(adamawaData) : null
-  const yobe = yobeData.length ? computeSummary(yobeData) : null
-  const bornoDisplaced = borno ? borno.totalDisplacement2025.toLocaleString() : '...'
-  const adamawaDisplaced = adamawa ? adamawa.totalDisplacement2025.toLocaleString() : '...'
-  const yobeDisplaced = yobe ? yobe.totalDisplacement2025.toLocaleString() : '...'
-  const stateCards = [
-    { name: 'Borno', sub: `${borno?.totalLGAs ?? 27} LGAs`, stat: bornoDisplaced, loading: !borno },
-    { name: 'Adamawa', sub: `${adamawa?.totalLGAs ?? 21} LGAs`, stat: adamawaDisplaced, loading: !adamawa },
-    { name: 'Yobe', sub: `${yobe?.totalLGAs ?? 17} LGAs`, stat: yobeDisplaced, loading: !yobe },
-  ]
+  const stateNames = [...new Set(allRows.map(r => r.state))]
+  const stateSummaries = stateNames
+    .map(name => ({ name, ...computeSummary(allRows.filter(r => r.state === name)) }))
+    .sort((a, b) => b.totalDisplacement2025 - a.totalDisplacement2025)
+    .slice(0, 3)
+  const stateCards = stateSummaries.length
+    ? stateSummaries.map(s => ({ name: s.name, sub: `${s.totalLGAs} LGAs`, stat: s.totalDisplacement2025.toLocaleString(), loading: false }))
+    : [
+        { name: 'Loading…', sub: '', stat: '...', loading: true },
+        { name: 'Loading…', sub: '', stat: '...', loading: true },
+        { name: 'Loading…', sub: '', stat: '...', loading: true },
+      ]
   return (
     <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 border-b border-border">
       <div className="max-w-7xl mx-auto">
@@ -294,11 +288,19 @@ function GeographicSnapshot({ content, styles, bornoData, adamawaData, yobeData 
                 </svg>
               </div>
               <div className="absolute inset-0">
-                {[
-                  { x: '25%', y: '45%', label: 'Borno', value: borno ? `${Math.round(borno.totalDisplacement2025 / 1000)}K displaced` : '212K displaced' },
-                  { x: '50%', y: '55%', label: 'Adamawa', value: adamawa ? `${Math.round(adamawa.totalDisplacement2025 / 1000)}K displaced` : '2.15M need' },
-                  { x: '70%', y: '40%', label: 'Yobe', value: yobe ? `${Math.round(yobe.totalDisplacement2025 / 1000)}K displaced` : '1.78M need' },
-                ].map((bubble, idx) => (
+                {(stateSummaries.length
+                  ? stateSummaries.map((s, idx) => ({
+                      x: ['25%', '50%', '70%'][idx] ?? '50%',
+                      y: ['45%', '55%', '40%'][idx] ?? '50%',
+                      label: s.name,
+                      value: `${Math.round(s.totalDisplacement2025 / 1000)}K displaced`,
+                    }))
+                  : [
+                      { x: '25%', y: '45%', label: '...', value: '...' },
+                      { x: '50%', y: '55%', label: '...', value: '...' },
+                      { x: '70%', y: '40%', label: '...', value: '...' },
+                    ]
+                ).map((bubble, idx) => (
                   <div key={idx} className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer" style={{ left: bubble.x, top: bubble.y }}>
                     <div className="rounded-full hover:opacity-80 active:scale-110 transition-all duration-200 border flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shadow-lg" style={{ backgroundColor: `${accent}cc`, borderColor: `${accent}80`, boxShadow: `0 8px 24px -4px ${accent}4d` }}>
                       <div className="text-center">
@@ -328,26 +330,35 @@ function formatValue(value: number, indicator: string): string {
   return `${value.toFixed(1)}%`
 }
 
-function BornoTrackerSection({ accent, bornoData }: { accent: string; bornoData: MasterRow[] }) {
+function LgaTrackerSection({ accent, allRows }: { accent: string; allRows: MasterRow[] }) {
   const [selectedYear, setSelectedYear] = useState<'y2022' | 'y2023' | 'y2024' | 'y2025'>('y2025')
   const [selectedIndicator, setSelectedIndicator] = useState('Displacement')
-  const indicators = [...new Set(bornoData.map(r => r.indicator))].sort()
-  const rows = bornoData
+  const [selectedState, setSelectedState] = useState<string | null>(null)
+  const liveStates = [...new Set(allRows.map(r => r.state))].sort()
+  const activeState = selectedState && liveStates.includes(selectedState) ? selectedState : liveStates[0] ?? null
+  const rows = activeState ? allRows.filter(r => r.state === activeState) : []
+  const indicators = [...new Set(rows.map(r => r.indicator))].sort()
   const filteredRows = rows.filter(r => r.indicator === selectedIndicator).sort((a, b) => { const aVal = a[selectedYear]; const bVal = b[selectedYear]; return LOWER_IS_BETTER.has(selectedIndicator) ? aVal - bVal : bVal - aVal })
-  const zoneCounts = { 'High Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'High Risk').length || 14, 'Low Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'Low Risk').length || 8, 'Medium Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'Medium Risk').length || 5 }
+  const zoneCounts = { 'High Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'High Risk').length, 'Low Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'Low Risk').length, 'Medium Risk': rows.filter(r => r.indicator === selectedIndicator && r.risk_zone === 'Medium Risk').length }
   const years: { key: 'y2022' | 'y2023' | 'y2024' | 'y2025'; label: string }[] = [{ key: 'y2022', label: '2022' }, { key: 'y2023', label: '2023' }, { key: 'y2024', label: '2024' }, { key: 'y2025', label: '2025' }]
+  const totalLGAs = activeState ? new Set(rows.map(r => r.lga)).size : 0
 
   return (
     <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 border-b border-border bg-secondary/10">
       <div className="max-w-7xl mx-auto">
         <FadeIn direction="up">
           <div className="mb-8 sm:mb-10 space-y-3">
-            <Badge variant="secondary" className="w-fit border text-xs shadow-sm" style={{ backgroundColor: `${accent}1a`, color: accent, borderColor: `${accent}33` }}>Borno State · Live Sheet Data</Badge>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">Borno LGA Performance Tracker</h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">27 Local Government Areas · 10 Indicators · 2022-2025 · Source: UNDP, UNFPA, UNHCR, HRP</p>
+            <Badge variant="secondary" className="w-fit border text-xs shadow-sm" style={{ backgroundColor: `${accent}1a`, color: accent, borderColor: `${accent}33` }}>{activeState ? `${activeState} State · Live Sheet Data` : 'Live Sheet Data'}</Badge>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">LGA Performance Tracker</h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">{activeState ? `${totalLGAs} Local Government Areas in ${activeState}` : 'Local Government Areas'} · 10 Indicators · 2022-2025 · Source: UNDP, UNFPA, UNHCR, HRP</p>
           </div>
         </FadeIn>
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          {liveStates.length > 1 && (
+            <select value={activeState ?? ''} onChange={e => setSelectedState(e.target.value)} className="bg-card border border-border rounded-xl px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-accent/60 cursor-pointer">
+              {liveStates.map(s => (<option key={s} value={s}>{s}</option>))}
+            </select>
+          )}
           <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1">
             {years.map(y => (<button key={y.key} onClick={() => setSelectedYear(y.key)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${selectedYear === y.key ? 'text-black' : 'text-muted-foreground hover:text-foreground'}`} style={selectedYear === y.key ? { backgroundColor: accent } : {}}>{y.label}</button>))}
           </div>
@@ -367,7 +378,7 @@ function BornoTrackerSection({ accent, bornoData }: { accent: string; bornoData:
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-2.5 bg-secondary/40 border-b border-border text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             <span>LGA</span><span className="text-right w-24 hidden sm:block">Zone</span><span className="text-right w-20">Value</span><span className="text-right w-14">Trend</span><span className="text-right w-16 hidden sm:block">2022-2025</span>
           </div>
-          {bornoData.length === 0 ? Array.from({ length: 8 }).map((_, i) => (
+          {allRows.length === 0 ? Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-3 px-4 py-3 border-b border-border/50 items-center">
               <Skeleton className="h-3 w-24" /><Skeleton className="h-4 w-20 hidden sm:block" /><Skeleton className="h-3 w-14" /><Skeleton className="h-3 w-8" /><Skeleton className="h-4 w-14 hidden sm:block" />
             </div>
@@ -520,9 +531,6 @@ export default function Home() {
   const [content, setContent] = useState<SiteContent>(defaultContent as SiteContent)
   const [elementStyles, setElementStyles] = useState<Record<string, ElementStyle>>({})
   const [allRows, setAllRows] = useState<MasterRow[]>([])
-  const bornoData = allRows.filter(r => r.state === 'Borno')
-  const adamawaData = allRows.filter(r => r.state === 'Adamawa')
-  const yobeData = allRows.filter(r => r.state === 'Yobe')
 
   useEffect(() => {
     // Load live content from API (picks up admin edits)
@@ -543,8 +551,8 @@ export default function Home() {
   const SECTIONS: Record<string, React.ComponentType> = {
     hero: () => <HeroSection content={content} styles={elementStyles} />,
     indicators: () => <IndicatorCards content={content} styles={elementStyles} />,
-    geographic: () => <GeographicSnapshot content={content} styles={elementStyles} bornoData={bornoData} adamawaData={adamawaData} yobeData={yobeData} />,
-    'borno-tracker': () => <BornoTrackerSection accent={accent} bornoData={bornoData} />,
+    geographic: () => <GeographicSnapshot content={content} styles={elementStyles} allRows={allRows} />,
+    'borno-tracker': () => <LgaTrackerSection accent={accent} allRows={allRows} />,
     features: () => <FeaturesSection content={content} styles={elementStyles} />,
     impact: () => <ImpactStoriesSection content={content} styles={elementStyles} />,
     cta: () => <CTASection content={content} />,

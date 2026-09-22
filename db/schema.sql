@@ -1,4 +1,4 @@
--- HUMAID BAY States D1 Schema
+-- HUMAID Nigeria D1 Schema
 -- Designed for scale: indexed on state, LGA, indicator for fast queries
 
 -- ── State sheet data rows ───────────────────────────────────────────────────

@@ -124,7 +124,7 @@ function GeographicEditor({ content, updateField }: { content: any; updateField:
     <div className="space-y-6">
       <div>
         <h3 className="font-bold text-lg mb-1">Geographic Section</h3>
-        <p className="text-sm text-muted-foreground">The BAY States humanitarian index map section.</p>
+        <p className="text-sm text-muted-foreground">The Nigeria humanitarian index map section.</p>
       </div>
       <Field label="Badge Text" value={content.geographic.badge} onChange={v => updateField('geographic.badge', v)} />
       <Field label="Title" value={content.geographic.title} onChange={v => updateField('geographic.title', v)} />

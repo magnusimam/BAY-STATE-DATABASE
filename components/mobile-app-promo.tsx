@@ -100,7 +100,7 @@ export function MobileAppPromo() {
             </Dialog.Title>
 
             <Dialog.Description className="mt-2 text-sm leading-relaxed text-zinc-400">
-              Real-time humanitarian data for Borno, Adamawa &amp; Yobe — now on
+              Real-time humanitarian data for all 36 states &amp; the FCT — now on
               your phone. Built for the field.
             </Dialog.Description>
 

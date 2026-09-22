@@ -35,25 +35,20 @@ import {
   Filter,
 } from 'lucide-react'
 
-import type { MasterRow, RegionalOverviewRow, ApiResponse, SyncStatus } from '@/lib/api-types'
+import type { MasterRow, ApiResponse, SyncStatus } from '@/lib/api-types'
 import { computeSummary, fetchJson } from '@/lib/api-types'
 import { useAuth } from '@/lib/auth-context'
 import { isAdminEmail } from '@/lib/admin-emails'
+import { nigeriaStates } from '@/lib/nigeria-states'
 
-// BAY States data
-const bayHumanitarianData = [
+// Illustrative national trend placeholders — replaced by live data once available
+const humanitarianNeedTrend = [
   { month: 'Jan', need: 6.85, displaced: 3.24, severity: 82 },
   { month: 'Feb', need: 6.92, displaced: 3.31, severity: 83 },
   { month: 'Mar', need: 7.05, displaced: 3.39, severity: 84 },
   { month: 'Apr', need: 7.12, displaced: 3.45, severity: 84 },
   { month: 'May', need: 7.19, displaced: 3.46, severity: 84 },
   { month: 'Jun', need: 7.25, displaced: 3.48, severity: 84 },
-]
-
-const bayStatesDistributionDefault = [
-  { name: 'Borno', value: 3.32, fill: '#f4b942' },
-  { name: 'Adamawa', value: 2.15, fill: '#6ec6e8' },
-  { name: 'Yobe', value: 1.78, fill: '#8b5cf6' },
 ]
 
 const youthProgramsData = [
@@ -65,33 +60,7 @@ const youthProgramsData = [
   { month: 'Jun', enrolled: 102000, completed: 71000 },
 ]
 
-// Crisis Data
-const crisisData = [
-  { month: 'Jan', crises: 100, population: 5000000 },
-  { month: 'Feb', crises: 105, population: 5200000 },
-  { month: 'Mar', crises: 110, population: 5400000 },
-  { month: 'Apr', crises: 115, population: 5600000 },
-  { month: 'May', crises: 120, population: 5800000 },
-  { month: 'Jun', crises: 125, population: 6000000 },
-]
-
-// Region Data
-const regionData = [
-  { name: 'Africa', value: 10 },
-  { name: 'Asia', value: 20 },
-  { name: 'Europe', value: 30 },
-  { name: 'North America', value: 40 },
-]
-
-// Youth Data
-const youthData = [
-  { month: 'Jan', enrolled: 78000, completed: 52000 },
-  { month: 'Feb', enrolled: 82000, completed: 56000 },
-  { month: 'Mar', enrolled: 85000, completed: 58000 },
-  { month: 'Apr', enrolled: 91000, completed: 63000 },
-  { month: 'May', enrolled: 95000, completed: 65000 },
-  { month: 'Jun', enrolled: 102000, completed: 71000 },
-]
+const STATE_PALETTE = ['#f4b942', '#6ec6e8', '#8b5cf6', '#22c55e', '#ef4444', '#ec4899', '#14b8a6']
 
 // KPI Card Component
 function KPICard({
@@ -162,7 +131,6 @@ function ChartCard({
 
 export default function Dashboard() {
   const [allRows, setAllRows] = React.useState<MasterRow[]>([])
-  const [overview, setOverview] = React.useState<RegionalOverviewRow[]>([])
   const [syncing, setSyncing] = React.useState(false)
   const [lastSynced, setLastSynced] = React.useState<number | null>(null)
   const { user } = useAuth()
@@ -170,10 +138,9 @@ export default function Dashboard() {
   const isAdmin = isAdminEmail(user?.email)
 
   React.useEffect(() => {
-    // Fetch all master data + overview + sync status in parallel
+    // Fetch all master data + sync status in parallel
     Promise.all([
       fetchJson<ApiResponse<MasterRow>>('/api/data?view=master').then(d => setAllRows(d.data ?? [])),
-      fetchJson<ApiResponse<RegionalOverviewRow>>('/api/data?view=overview').then(d => setOverview(d.data ?? [])),
       fetchJson<SyncStatus>('/api/data').then(d => {
         if (d.last_sync?.updated_at) setLastSynced(d.last_sync.updated_at)
       }),
@@ -196,23 +163,27 @@ export default function Dashboard() {
     }
   }
 
-  const bornoRows = React.useMemo(() => allRows.filter(r => r.state === 'Borno'), [allRows])
-  const adamawaRows = React.useMemo(() => allRows.filter(r => r.state === 'Adamawa'), [allRows])
-  const yobeRows = React.useMemo(() => allRows.filter(r => r.state === 'Yobe'), [allRows])
+  const rowsByState = React.useMemo(() => {
+    const map = new Map<string, MasterRow[]>()
+    for (const row of allRows) {
+      const existing = map.get(row.state) ?? []
+      existing.push(row)
+      map.set(row.state, existing)
+    }
+    return map
+  }, [allRows])
 
-  const bornoSummary = React.useMemo(() => computeSummary(bornoRows), [bornoRows])
-  const adamawaSummary = React.useMemo(() => computeSummary(adamawaRows), [adamawaRows])
-  const yobeSummary = React.useMemo(() => computeSummary(yobeRows), [yobeRows])
-  const baySummary = React.useMemo(() => computeSummary(allRows), [allRows])
+  const liveStateNames = React.useMemo(() => [...rowsByState.keys()].sort(), [rowsByState])
+  const nationalSummary = React.useMemo(() => computeSummary(allRows), [allRows])
+  const totalDisplaced = nationalSummary.totalDisplacement2025
+  const totalConflict = nationalSummary.totalConflict2025
 
-  const bornoLGAs = bornoSummary.totalLGAs || 27
-  const adamawaLGAs = adamawaSummary.totalLGAs || 21
-  const yobeLGAs = yobeSummary.totalLGAs || 17
-  const totalDisplaced = baySummary.totalDisplacement2025
-  const totalConflict = baySummary.totalConflict2025
-
-  // Get KPI values from regional overview
-  const getKpi = (metric: string) => overview.find(r => r.section === 'kpi' && r.metric.toLowerCase().includes(metric.toLowerCase()))
+  const distributionData = React.useMemo(() => {
+    return liveStateNames
+      .map((name, i) => ({ name, value: computeSummary(rowsByState.get(name) ?? []).totalDisplacement2025, fill: STATE_PALETTE[i % STATE_PALETTE.length] }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6)
+  }, [liveStateNames, rowsByState])
 
   const syncedAgo = lastSynced
     ? Math.round((Date.now() - lastSynced) / 60000) === 0
@@ -261,13 +232,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* BAY States KPI Cards */}
+      {/* National KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <FadeIn delay={0} direction="up">
           <KPICard
             title="Total Displaced (2025)"
             value={totalDisplaced ? `${(totalDisplaced / 1000).toFixed(1)}K` : '—'}
-            change={`${bornoLGAs + adamawaLGAs + yobeLGAs} LGAs tracked`}
+            change={`${nationalSummary.totalLGAs} LGAs tracked`}
             icon={AlertTriangle}
             trend="down"
             sparklineData={allRows.length ? [totalDisplaced * 1.3, totalDisplaced * 1.2, totalDisplaced * 1.1, totalDisplaced] : undefined}
@@ -278,7 +249,7 @@ export default function Dashboard() {
           <KPICard
             title="Conflict Incidents (2025)"
             value={totalConflict ? totalConflict.toLocaleString() : '—'}
-            change="Across BAY states"
+            change="Across live states"
             icon={AlertTriangle}
             trend="down"
             sparklineData={allRows.length ? [totalConflict * 1.4, totalConflict * 1.3, totalConflict * 1.1, totalConflict] : undefined}
@@ -287,42 +258,29 @@ export default function Dashboard() {
         </FadeIn>
         <FadeIn delay={200} direction="up">
           <KPICard
-            title="Borno LGAs"
-            value={String(bornoLGAs)}
-            change="Live from unified tracker"
+            title="States Live"
+            value={`${liveStateNames.length} / ${Object.keys(nigeriaStates).length}`}
+            change="States with synced data"
             icon={Globe}
             trend="up"
-            sparklineData={[8, 12, 18, 22, 25, bornoLGAs]}
             sparklineColor="#f4b942"
           />
         </FadeIn>
         <FadeIn delay={250} direction="up">
           <KPICard
-            title="Adamawa LGAs"
-            value={String(adamawaLGAs)}
+            title="LGAs Tracked"
+            value={String(nationalSummary.totalLGAs)}
             change="Live from unified tracker"
             icon={Globe}
             trend="up"
-            sparklineData={[5, 8, 12, 16, 19, adamawaLGAs]}
             sparklineColor="#6ec6e8"
-          />
-        </FadeIn>
-        <FadeIn delay={300} direction="up">
-          <KPICard
-            title="Yobe LGAs"
-            value={String(yobeLGAs)}
-            change="Live from unified tracker"
-            icon={Globe}
-            trend="up"
-            sparklineData={[4, 7, 10, 13, 15, yobeLGAs]}
-            sparklineColor="#8b5cf6"
           />
         </FadeIn>
         <FadeIn delay={350} direction="up">
           <KPICard
             title="Total SMEs (2025)"
             value={allRows.length ? allRows.filter(r => r.indicator === 'SMEs Registered').reduce((s, r) => s + r.y2025, 0).toLocaleString() : '—'}
-            change="Across BAY states"
+            change="Across live states"
             icon={TrendingUp}
             trend="up"
             sparklineColor="#22c55e"
@@ -332,14 +290,14 @@ export default function Dashboard() {
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* BAY Humanitarian Need Trends - spans 2 columns */}
+        {/* Humanitarian Need Trends - spans 2 columns */}
         <div className="lg:col-span-2">
           <ChartCard
-            title="BAY States Humanitarian Need"
+            title="Humanitarian Need Trend"
             description="Total population in need and displaced persons over time"
           >
             <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
-              <AreaChart data={bayHumanitarianData}>
+              <AreaChart data={humanitarianNeedTrend}>
                 <defs>
                   <linearGradient id="colorCrises" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#f4b942" stopOpacity={0.8} />
@@ -365,51 +323,48 @@ export default function Dashboard() {
           </ChartCard>
         </div>
 
-        {/* BAY States Distribution */}
+        {/* Displacement by State */}
         <ChartCard
-          title="BAY States — Displacement"
-          description="Total displaced persons by state (2025)"
+          title="Displacement by State"
+          description={distributionData.length ? 'Top states by displaced persons (2025)' : 'Loading live data…'}
         >
-          {(() => {
-            const distData = allRows.length ? [
-              { name: 'Borno', value: bornoSummary.totalDisplacement2025, fill: '#f4b942' },
-              { name: 'Adamawa', value: adamawaSummary.totalDisplacement2025, fill: '#6ec6e8' },
-              { name: 'Yobe', value: yobeSummary.totalDisplacement2025, fill: '#8b5cf6' },
-            ] : bayStatesDistributionDefault
-            return (
-              <>
-                <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
-                  <PieChart>
-                    <Pie data={distData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5} dataKey="value">
-                      {distData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
-                  {distData.map((state, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: state.fill }} />
-                        <span className="text-muted-foreground">{state.name}</span>
-                      </div>
-                      <span className="font-bold">{allRows.length ? state.value.toLocaleString() : `${state.value}M`}</span>
+          {distributionData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
+                <PieChart>
+                  <Pie data={distributionData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={5} dataKey="value">
+                    {distributionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
+                {distributionData.map((state, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: state.fill }} />
+                      <span className="text-muted-foreground">{state.name}</span>
                     </div>
-                  ))}
-                </div>
-              </>
-            )
-          })()}
+                    <span className="font-bold">{state.value.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="h-[220px] sm:h-[300px] flex items-center justify-center text-sm text-muted-foreground">
+              Loading...
+            </div>
+          )}
         </ChartCard>
       </div>
 
-      {/* BAY Youth Programs & Need Severity */}
+      {/* Youth Programs & Need Severity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* BAY Youth Program Enrollment */}
+        {/* Youth Program Enrollment */}
         <ChartCard
-          title="BAY Youth Program Enrollment"
+          title="Youth Program Enrollment"
           description="Participants and completion rates"
         >
           <ResponsiveContainer width="100%" height={300}>
@@ -427,13 +382,13 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* BAY Severity Trend */}
+        {/* Severity Trend */}
         <ChartCard
           title="Humanitarian Severity Index"
-          description="Weighted measure of need across BAY states"
+          description="Weighted measure of need across tracked states"
         >
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={bayHumanitarianData}>
+            <LineChart data={humanitarianNeedTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
               <XAxis dataKey="month" stroke="#94a3b8" />
               <YAxis stroke="#94a3b8" />

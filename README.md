@@ -1,15 +1,15 @@
-# HUMAID - BAY States Data Intelligence Platform
+# HUMAID - Nigeria Data Intelligence Platform
 
-A real-time humanitarian and youth data intelligence platform focused on the BAY States (Borno, Adamawa, Yobe) in Northeast Nigeria.
+A real-time humanitarian and youth data intelligence platform covering all 36 states and the FCT across Nigeria.
 
 ## Overview
 
-HUMAID provides comprehensive data insights for policymakers, researchers, and humanitarian organizations working in crisis-affected areas. The platform tracks humanitarian needs, displaced persons, youth programs, and development indicators across all 23 LGAs in the BAY region.
+HUMAID provides comprehensive data insights for policymakers, researchers, and humanitarian organizations working across Nigeria. The platform tracks humanitarian needs, displaced persons, youth programs, and development indicators at the state and LGA level nationwide. Live LGA-level tracking currently spans Borno, Adamawa, and Yobe, with additional states coming online as data is synced.
 
 ## Features
 
 - **Real-Time Dashboard** - Live humanitarian metrics and KPIs
-- **BAY States Coverage** - Comprehensive data for Borno, Adamawa, and Yobe
+- **Nationwide Coverage** - Data for all 36 states and the FCT, with live LGA-level tracking rolling out state by state
 - **AI Analysis** - Crisis forecasting, pattern detection, anomaly alerts
 - **Policy Briefs** - AI-generated policy recommendations
 - **State Comparison** - Side-by-side regional analysis

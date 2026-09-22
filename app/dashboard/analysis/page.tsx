@@ -39,6 +39,8 @@ import {
   type ApiResponse,
 } from '@/lib/api-types'
 
+const RADAR_COLORS = ['#f4b942', '#6ec6e8', '#a78bfa', '#22c55e', '#ef4444', '#f472b6']
+
 export default function Analysis() {
   const [masterRows, setMasterRows] = useState<MasterRow[]>([])
   const [indicatorRows, setIndicatorRows] = useState<IndicatorAnalysisRow[]>([])
@@ -63,7 +65,6 @@ export default function Analysis() {
   // KPI summaries
   const kpis = useMemo(() => {
     if (!masterRows.length) return null
-    const states = ['Borno', 'Adamawa', 'Yobe']
     const totalLGAs = new Set(masterRows.map(r => r.lga)).size
 
     const displacement2025 = masterRows
@@ -87,19 +88,22 @@ export default function Analysis() {
     return { totalLGAs, displacement2025, displacementChange, conflict2025, improving, declining, stable }
   }, [masterRows])
 
+  // States currently live in the unified tracker (radar chart caps at a handful for legibility)
+  const radarStates = useMemo(() => [...new Set(masterRows.map(r => r.state))].sort().slice(0, 6), [masterRows])
+
   // Radar chart: average indicators per state (normalized 0-100)
   const radarData = useMemo(() => {
     const indicators = [...new Set(masterRows.map(r => r.indicator))]
     return indicators.map(ind => {
       const entry: Record<string, string | number> = { indicator: ind.replace(/ /g, '\n') }
-      for (const state of ['Borno', 'Adamawa', 'Yobe']) {
+      for (const state of radarStates) {
         const rows = masterRows.filter(r => r.indicator === ind && r.state === state)
         const avg = rows.length ? rows.reduce((s, r) => s + r.y2025, 0) / rows.length : 0
         entry[state] = +avg.toFixed(1)
       }
       return entry
     })
-  }, [masterRows])
+  }, [masterRows, radarStates])
 
   // Risk zone distribution
   const riskZoneData = useMemo(() => {
@@ -168,7 +172,7 @@ export default function Analysis() {
         </div>
         <h1 className="text-4xl font-bold">AI Analysis Engine</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Data-driven analysis across {kpis?.totalLGAs ?? 65} LGAs, 10 indicators, and 4 years of BAY States humanitarian data.
+          Data-driven analysis across {kpis?.totalLGAs ?? 65} LGAs, 10 indicators, and 4 years of Nigeria humanitarian data.
         </p>
       </div>
 
@@ -231,9 +235,10 @@ export default function Analysis() {
                 <PolarGrid stroke="#2d3748" />
                 <PolarAngleAxis dataKey="indicator" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                 <PolarRadiusAxis tick={{ fill: '#64748b', fontSize: 10 }} />
-                <Radar name="Borno" dataKey="Borno" stroke="#f4b942" fill="#f4b942" fillOpacity={0.15} />
-                <Radar name="Adamawa" dataKey="Adamawa" stroke="#6ec6e8" fill="#6ec6e8" fillOpacity={0.15} />
-                <Radar name="Yobe" dataKey="Yobe" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.15} />
+                {radarStates.map((state, idx) => {
+                  const color = RADAR_COLORS[idx % RADAR_COLORS.length]
+                  return <Radar key={state} name={state} dataKey={state} stroke={color} fill={color} fillOpacity={0.15} />
+                })}
                 <Legend />
               </RadarChart>
             </ResponsiveContainer>

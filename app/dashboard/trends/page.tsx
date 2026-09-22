@@ -59,10 +59,19 @@ import {
   type ApiResponse,
   type SyncStatus,
 } from '@/lib/api-types'
+import { nigeriaStates } from '@/lib/nigeria-states'
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-const STATES = ['All', 'Borno', 'Adamawa', 'Yobe']
+const STATE_PALETTE = ['#f4b942', '#6ec6e8', '#8b5cf6', '#22c55e', '#ef4444', '#ec4899', '#14b8a6']
+function colorForState(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0
+  return STATE_PALETTE[hash % STATE_PALETTE.length]
+}
+
+const ALL_STATE_NAMES = Object.values(nigeriaStates).map(s => s.name).sort()
+const STATES = ['All', ...ALL_STATE_NAMES]
 const INDICATORS = [
   'All',
   'Youth % Population',
@@ -77,11 +86,9 @@ const INDICATORS = [
   'Voter Card Gap',
 ]
 
-const STATE_COLORS: Record<string, string> = {
-  Borno: '#f4b942',
-  Adamawa: '#6ec6e8',
-  Yobe: '#a78bfa',
-}
+const STATE_COLORS: Record<string, string> = Object.fromEntries(
+  ALL_STATE_NAMES.map(name => [name, colorForState(name)])
+)
 
 const SECTION_ICONS: Record<string, typeof Lightbulb> = {
   progress: TrendingUp,
@@ -166,7 +173,7 @@ function exportCSV(rows: MasterRow[], stateFilter: string, indicatorFilter: stri
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `bay-trends-${stateFilter.toLowerCase()}-${indicatorFilter.toLowerCase().replace(/ /g, '-')}.csv`
+  a.download = `humaid-trends-${stateFilter.toLowerCase()}-${indicatorFilter.toLowerCase().replace(/ /g, '-')}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -270,6 +277,11 @@ export default function TrendsPage() {
   }, [filteredRows, indicatorFilter])
 
   // ── State comparison chart ────────────────────────────────────────────────
+  const comparisonStates = useMemo(() => {
+    if (indicatorFilter === 'All') return []
+    return [...new Set(masterRows.filter(r => r.indicator === indicatorFilter).map(r => r.state))].sort()
+  }, [masterRows, indicatorFilter])
+
   const stateComparisonData = useMemo(() => {
     if (indicatorFilter === 'All') return []
     const filtered = masterRows.filter(r => r.indicator === indicatorFilter)
@@ -338,7 +350,7 @@ export default function TrendsPage() {
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">Trend Analysis</h1>
               <p className="text-sm sm:text-base text-muted-foreground">
-                4-year trends across BAY States indicators (2022-2025)
+                4-year trends across Nigeria state indicators (2022-2025)
               </p>
             </div>
             {lastSynced && (
@@ -503,7 +515,7 @@ export default function TrendsPage() {
             <div className="mb-4 sm:mb-6">
               <h3 className="font-bold text-base sm:text-lg">Trend Direction by Indicator</h3>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {stateFilter !== 'All' ? stateFilter : 'BAY Combined'} — how many LGAs are improving, declining, or stable per indicator
+                {stateFilter !== 'All' ? stateFilter : 'National'} — how many LGAs are improving, declining, or stable per indicator
               </p>
             </div>
             <ResponsiveContainer width="100%" height={320}>
@@ -537,7 +549,7 @@ export default function TrendsPage() {
                 {indicatorFilter} — Year-over-Year Average
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {stateFilter !== 'All' ? stateFilter : 'BAY Combined'} — average per LGA
+                {stateFilter !== 'All' ? stateFilter : 'National'} — average per LGA
               </p>
             </div>
             <ResponsiveContainer width="100%" height={300}>
@@ -574,7 +586,7 @@ export default function TrendsPage() {
           <Card className="bg-card border-border p-4 sm:p-6">
             <div className="mb-4 sm:mb-6">
               <h3 className="font-bold text-base sm:text-lg">State Comparison — {indicatorFilter}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Average per LGA across all three states</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Average per LGA across states with data for this indicator</p>
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={stateComparisonData}>
@@ -583,7 +595,7 @@ export default function TrendsPage() {
                 <YAxis stroke="#94a3b8" tickFormatter={formatAxis} tick={{ fontSize: 11 }} />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend />
-                {['Borno', 'Adamawa', 'Yobe'].map(state => (
+                {comparisonStates.map(state => (
                   <Line
                     key={state}
                     type="monotone"
@@ -779,7 +791,7 @@ function ProgressScorecard({ rows, stateFilter }: { rows: TrendAnalysisRow[]; st
           </div>
           <div>
             <h3 className="font-bold text-base sm:text-lg">Progress Scorecard</h3>
-            <p className="text-xs text-muted-foreground">4-year improvements across BAY States (2022-2025)</p>
+            <p className="text-xs text-muted-foreground">4-year improvements across Borno, Adamawa &amp; Yobe (2022-2025)</p>
           </div>
         </div>
 

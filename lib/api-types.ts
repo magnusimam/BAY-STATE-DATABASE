@@ -22,16 +22,36 @@ export interface RegionalOverviewRow {
   id: number
   section: string
   metric: string
-  borno: number
-  adamawa: number
-  yobe: number
-  bay_combined: number
-  bay_2022: number
-  bay_2023: number
-  bay_2024: number
-  bay_2025: number
+  state: string // state name, or 'National' for the all-Nigeria aggregate row
+  y2022: number
+  y2023: number
+  y2024: number
+  y2025: number
   trend: string
   raw_row: string
+}
+
+export interface CoverageRow {
+  state: string
+  c: number // row count in master_data for this state
+}
+
+/** Helper: build a Set of state names that have live synced data */
+export function getCoveredStates(rows: CoverageRow[]): Set<string> {
+  return new Set(rows.map(r => r.state))
+}
+
+/** Helper: pivot long-format regional_overview rows into metric -> state -> latest value */
+export function pivotOverviewByMetric(
+  rows: RegionalOverviewRow[]
+): Map<string, Map<string, RegionalOverviewRow>> {
+  const map = new Map<string, Map<string, RegionalOverviewRow>>()
+  for (const row of rows) {
+    const byState = map.get(row.metric) ?? new Map<string, RegionalOverviewRow>()
+    byState.set(row.state, row)
+    map.set(row.metric, byState)
+  }
+  return map
 }
 
 export interface LgaProfileRow {

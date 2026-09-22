@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -15,22 +14,23 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { Search, ArrowRight, TrendingUp, Users, AlertTriangle, MapPin } from 'lucide-react'
+import { Search, ArrowRight, MapPin } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
-import { bayStates, type BAYState } from '@/lib/bay-data'
+import { nigeriaStates, type NigeriaState } from '@/lib/nigeria-states'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
-import { groupByLga, getUniqueLgas, computeSummary, fetchJson } from '@/lib/api-types'
+import { groupByLga, computeSummary, fetchJson } from '@/lib/api-types'
 
-// BAY States data
-const statesData = Object.values(bayStates)
+const statesData = Object.values(nigeriaStates).sort((a, b) => a.name.localeCompare(b.name))
 
 // State card component
 function StateCard({
   state,
   rows,
+  hasData,
 }: {
-  state: BAYState
+  state: NigeriaState
   rows: MasterRow[]
+  hasData: boolean
 }) {
   const summary = rows.length ? computeSummary(rows) : null
   const lgaCount = summary?.totalLGAs ?? state.lgaCount
@@ -48,7 +48,7 @@ function StateCard({
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">{state.name}</h3>
-                  <p className="text-xs text-muted-foreground">{lgaCount} LGAs • {state.population.toFixed(2)}M people</p>
+                  <p className="text-xs text-muted-foreground">{state.zone} • {state.population.toFixed(2)}M people</p>
                 </div>
               </div>
             </div>
@@ -56,7 +56,7 @@ function StateCard({
           </div>
 
           {/* Metrics from live data */}
-          {summary && (
+          {hasData && summary && (
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border">
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Displaced (2025)</div>
@@ -76,11 +76,15 @@ function StateCard({
           {/* Status */}
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <div className="text-sm text-muted-foreground">
-              {rows.length ? `${rows.length} data points` : 'Loading...'}
+              {hasData ? `${rows.length} data points` : `${state.lgaCount} LGAs`}
             </div>
-            <Badge className="bg-accent/10 text-accent border-accent/20">
-              Active
-            </Badge>
+            {hasData ? (
+              <Badge className="bg-accent/10 text-accent border-accent/20">Active</Badge>
+            ) : (
+              <Badge variant="outline" className="text-muted-foreground border-border">
+                Data coming soon
+              </Badge>
+            )}
           </div>
         </div>
       </Card>
@@ -88,7 +92,6 @@ function StateCard({
   )
 }
 
-// LGA card for sheet data (works for both Borno and Adamawa rows)
 const ZONE_COLORS: Record<string, string> = {
   'Conflict-Affected': '#ef4444',
   'Stable/Urban': '#22c55e',
@@ -98,7 +101,7 @@ const ZONE_COLORS: Record<string, string> = {
   'Low Risk': '#22c55e',
 }
 
-function BornoSheetLGACard({ rows }: { rows: MasterRow[] }) {
+function LGACard({ rows }: { rows: MasterRow[] }) {
   const lga = rows[0]?.lga ?? ''
   const zone = rows[0]?.risk_zone ?? 'High Risk'
   const zoneColor = ZONE_COLORS[zone] ?? '#f4b942'
@@ -156,9 +159,18 @@ export default function Countries() {
   }, [])
 
   const hasData = allRows.length > 0
-  const bornoRows = useMemo(() => allRows.filter(r => r.state === 'Borno'), [allRows])
-  const adamawaRows = useMemo(() => allRows.filter(r => r.state === 'Adamawa'), [allRows])
-  const yobeRows = useMemo(() => allRows.filter(r => r.state === 'Yobe'), [allRows])
+
+  const rowsByState = useMemo(() => {
+    const map = new Map<string, MasterRow[]>()
+    for (const row of allRows) {
+      const existing = map.get(row.state) ?? []
+      existing.push(row)
+      map.set(row.state, existing)
+    }
+    return map
+  }, [allRows])
+
+  const liveStateNames = useMemo(() => [...rowsByState.keys()].sort(), [rowsByState])
 
   const topLGAs = useMemo(() => {
     if (!hasData) return []
@@ -166,32 +178,32 @@ export default function Countries() {
     return unemp.sort((a, b) => b.y2025 - a.y2025).slice(0, 5).map(r => ({ name: r.lga, need: r.y2025 }))
   }, [allRows, hasData])
 
-  const bornoLGAMap = useMemo(() => groupByLga(bornoRows), [bornoRows])
-  const adamawaLGAMap = useMemo(() => groupByLga(adamawaRows), [adamawaRows])
-  const yobeLGAMap = useMemo(() => groupByLga(yobeRows), [yobeRows])
+  const topStatesByDisplacement = useMemo(() => {
+    return liveStateNames
+      .map(name => ({ name, code: statesData.find(s => s.name === name)?.code ?? name.slice(0, 2).toUpperCase(), value: computeSummary(rowsByState.get(name) ?? []).totalDisplacement2025 }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8)
+  }, [liveStateNames, rowsByState])
 
   const filteredStates = useMemo(() => {
-    const base = statesData.map(s => {
-      if (s.code === 'BN' && bornoRows.length) return { ...s, lgaCount: computeSummary(bornoRows).totalLGAs }
-      if (s.code === 'AD' && adamawaRows.length) return { ...s, lgaCount: computeSummary(adamawaRows).totalLGAs }
-      if (s.code === 'YB' && yobeRows.length) return { ...s, lgaCount: computeSummary(yobeRows).totalLGAs }
-      return s
-    })
-    if (!search) return base
-    return base.filter(
+    if (!search) return statesData
+    return statesData.filter(
       state =>
         state.name.toLowerCase().includes(search.toLowerCase()) ||
-        state.code.toLowerCase().includes(search.toLowerCase())
+        state.code.toLowerCase().includes(search.toLowerCase()) ||
+        state.zone.toLowerCase().includes(search.toLowerCase())
     )
-  }, [search, bornoRows, adamawaRows, yobeRows])
+  }, [search])
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-2 sm:gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">BAY States & LGAs</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Explore humanitarian data by state and local government area</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">Nigeria States & LGAs</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Explore humanitarian data across all 36 states and the FCT · {liveStateNames.length} of {statesData.length} states live
+          </p>
         </div>
       </div>
 
@@ -199,7 +211,7 @@ export default function Countries() {
       <div className="relative">
         <Search className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
         <Input
-          placeholder="Search states or LGAs..."
+          placeholder="Search states or zones..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9 sm:pl-10 bg-secondary border-border focus:border-accent h-9 sm:h-10 text-sm"
@@ -218,24 +230,28 @@ export default function Countries() {
           {/* Top states chart */}
           <Card className="bg-card border-border p-4 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="font-bold text-base sm:text-lg">BAY States — Displacement (2025)</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Total displaced persons per state</p>
+              <h2 className="font-bold text-base sm:text-lg">Displacement (2025)</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                {topStatesByDisplacement.length ? 'Total displaced persons per state, top 8 states with live data' : 'No live data synced yet'}
+              </p>
             </div>
-            <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
-              <BarChart data={[
-                { code: 'BN', name: 'Borno', value: computeSummary(bornoRows).totalDisplacement2025 },
-                { code: 'AD', name: 'Adamawa', value: computeSummary(adamawaRows).totalDisplacement2025 },
-                { code: 'YB', name: 'Yobe', value: computeSummary(yobeRows).totalDisplacement2025 },
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-                <XAxis dataKey="code" stroke="#94a3b8" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }}
-                />
-                <Bar dataKey="value" fill="#f4b942" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {topStatesByDisplacement.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220} className="sm:h-[300px]">
+                <BarChart data={topStatesByDisplacement}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                  <XAxis dataKey="code" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1a1e23', border: '1px solid #2d3748', fontSize: 12 }}
+                  />
+                  <Bar dataKey="value" fill="#f4b942" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[220px] sm:h-[300px] flex items-center justify-center text-sm text-muted-foreground">
+                Loading...
+              </div>
+            )}
           </Card>
 
           {/* States grid */}
@@ -248,9 +264,12 @@ export default function Countries() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                 {filteredStates.map((state) => (
-                  <StateCard key={state.code} state={state} rows={
-                    state.code === 'BN' ? bornoRows : state.code === 'AD' ? adamawaRows : yobeRows
-                  } />
+                  <StateCard
+                    key={state.code}
+                    state={state}
+                    rows={rowsByState.get(state.name) ?? []}
+                    hasData={rowsByState.has(state.name)}
+                  />
                 ))}
               </div>
             )}
@@ -280,41 +299,42 @@ export default function Countries() {
             </ResponsiveContainer>
           </Card>
 
-          {/* All LGAs grid */}
+          {/* LGAs grid — only states with live data get a section; the rest are summarized */}
           <div className="space-y-3 sm:space-y-4">
             <h2 className="font-bold text-base sm:text-lg">
-              All LGAs ({hasData ? computeSummary(allRows).totalLGAs : 65})
+              All LGAs ({hasData ? computeSummary(allRows).totalLGAs : 0})
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {statesData.map(state => (
-                <div key={state.code} className="space-y-2 sm:space-y-3">
-                  <h3 className="font-bold text-xs sm:text-sm text-muted-foreground uppercase flex items-center gap-2">
-                    {state.name} State
-                    {(() => {
-                      const stateMap = state.code === 'BN' ? bornoLGAMap : state.code === 'AD' ? adamawaLGAMap : yobeLGAMap
-                      const color = state.code === 'BN' ? 'accent' : state.code === 'AD' ? 'blue-400' : 'purple-400'
-                      const bg = state.code === 'BN' ? 'accent/20' : state.code === 'AD' ? 'blue-500/20' : 'purple-500/20'
-                      return stateMap.size > 0 ? (
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded bg-${bg} text-${color} normal-case`}>
+            {liveStateNames.length < statesData.length && (
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {statesData.length - liveStateNames.length} states don&apos;t have LGA-level data synced yet.
+              </p>
+            )}
+            {liveStateNames.length === 0 ? (
+              <Card className="bg-card border-border p-8 sm:p-12 text-center">
+                <p className="text-sm sm:text-base text-muted-foreground">Loading LGA data...</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {liveStateNames.map(stateName => {
+                  const stateMap = groupByLga(rowsByState.get(stateName) ?? [])
+                  return (
+                    <div key={stateName} className="space-y-2 sm:space-y-3">
+                      <h3 className="font-bold text-xs sm:text-sm text-muted-foreground uppercase flex items-center gap-2">
+                        {stateName} State
+                        <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent normal-case">
                           {stateMap.size} LGAs · Live Data
                         </span>
-                      ) : null
-                    })()}
-                  </h3>
-                  <div className="space-y-2 sm:space-y-3">
-                    {(() => {
-                      const stateMap = state.code === 'BN' ? bornoLGAMap : state.code === 'AD' ? adamawaLGAMap : yobeLGAMap
-                      if (stateMap.size > 0) {
-                        return [...stateMap.entries()].map(([lgaName, rows]) => (
-                          <BornoSheetLGACard key={lgaName} rows={rows} />
-                        ))
-                      }
-                      return <p className="text-sm text-muted-foreground py-4">Loading LGA data...</p>
-                    })()}
-                  </div>
-                </div>
-              ))}
-            </div>
+                      </h3>
+                      <div className="space-y-2 sm:space-y-3">
+                        {[...stateMap.entries()].map(([lgaName, rows]) => (
+                          <LGACard key={lgaName} rows={rows} />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>

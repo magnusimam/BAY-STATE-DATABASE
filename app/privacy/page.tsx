@@ -3,12 +3,12 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — HUMAID',
-  description: 'Privacy policy for the HUMAID BAY States humanitarian data intelligence platform (web and mobile).',
+  description: 'Privacy policy for the HUMAID humanitarian data intelligence platform, covering Nigeria (web and mobile).',
 }
 
 const EFFECTIVE_DATE = 'April 20, 2026'
 const CONTACT_EMAIL = 'imammagnus40@gmail.com'
-const ORG_NAME = 'BAY States Intelligence'
+const ORG_NAME = 'HUMAID Intelligence'
 const PRODUCT_NAME = 'HUMAID'
 
 export default function PrivacyPolicyPage() {
@@ -56,8 +56,8 @@ export default function PrivacyPolicyPage() {
             <p>
               {PRODUCT_NAME} does <strong>not</strong> collect precise device location, contacts,
               photos, microphone audio, or health data. The humanitarian datasets displayed in the
-              app (indicators for Borno, Adamawa, and Yobe states) come from publicly reported
-              regional data, not from individual users.
+              app (indicators by Nigerian state and LGA) come from publicly reported regional data,
+              not from individual users.
             </p>
           </div>
 

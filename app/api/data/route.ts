@@ -11,6 +11,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare'
  *   ?view=lga-profiles      — Wide-format LGA snapshot
  *   ?view=methodology       — Data definitions and sources
  *   ?view=master            — Full master_data (optionally filtered by &state= &indicator=)
+ *   ?view=coverage          — Per-state row counts from master_data (which states have live data)
  *   ?state=borno            — All master_data rows for a state
  *   (no params)             — Returns sync status + summary counts
  */
@@ -84,6 +85,13 @@ export async function GET(req: NextRequest) {
           : db.prepare(query)
         const { results } = await stmt.all()
         return NextResponse.json({ source: 'db', data: results })
+      }
+
+      case 'coverage': {
+        const { results } = await db
+          .prepare('SELECT state, COUNT(*) as c FROM master_data GROUP BY state')
+          .all()
+        return NextResponse.json({ data: results })
       }
 
       case 'methodology': {

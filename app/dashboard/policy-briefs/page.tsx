@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/textarea'
 import type { MasterRow, ApiResponse } from '@/lib/api-types'
 import { computeSummary, fetchJson } from '@/lib/api-types'
+import { nigeriaStates } from '@/lib/nigeria-states'
 import {
   Download,
   Share2,
@@ -30,7 +31,8 @@ import {
   Eye,
 } from 'lucide-react'
 
-// BAY States policy briefs
+// Curated example briefs (currently states with live data) — more states
+// get briefs as their data comes online
 const policyBriefs = [
   {
     id: 1,
@@ -45,7 +47,7 @@ const policyBriefs = [
     keyPoints: [
       'Humanitarian need at 3.32M people in Borno',
       'Displacement crisis: 1.8M internally displaced persons',
-      '91/100 severity index - highest in BAY region',
+      '91/100 severity index - highest in Northeast Nigeria',
       'Food insecurity affecting 76% of affected populations',
     ],
     recommendations: [
@@ -59,8 +61,8 @@ const policyBriefs = [
   },
   {
     id: 2,
-    title: 'Youth Development Strategy for BAY States',
-    region: 'BAY',
+    title: 'Youth Development Strategy for Nigeria',
+    region: 'National',
     states: ['Borno', 'Adamawa', 'Yobe'],
     lgas: ['Multiple'],
     date: '2025-01-12',
@@ -68,19 +70,19 @@ const policyBriefs = [
     status: 'Published',
     views: 1542,
     keyPoints: [
-      'Youth unemployment across BAY averaging 43.5%',
+      'Youth unemployment nationwide averaging 43.5%',
       'Over 2.8M youth lack access to quality education',
       'Digital skills gap limiting economic opportunities',
       'Vocational training programs show 4:1 community ROI',
     ],
     recommendations: [
-      'Establish vocational training centers in 8 LGAs',
+      'Establish vocational training centers in high-need LGAs',
       'Partner with tech companies for digital skills',
       'Create youth employment programs in key sectors',
-      'Scale digital literacy across BAY states',
+      'Scale digital literacy nationwide',
     ],
     summary:
-      'BAY States face a critical youth employment crisis with an average unemployment rate of 43.5%. With over 2.8 million young people in need of better opportunities, targeted investment in vocational training and digital skills could drive sustainable economic development.',
+      'Nigeria faces a critical youth employment crisis with an average unemployment rate of 43.5%. With over 2.8 million young people in need of better opportunities, targeted investment in vocational training and digital skills could drive sustainable economic development.',
   },
   {
     id: 3,
@@ -148,10 +150,12 @@ function BriefCreationModal({
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
-                <SelectItem value="bay">BAY Combined</SelectItem>
-                <SelectItem value="borno">Borno</SelectItem>
-                <SelectItem value="adamawa">Adamawa</SelectItem>
-                <SelectItem value="yobe">Yobe</SelectItem>
+                <SelectItem value="national">National (all states)</SelectItem>
+                {Object.values(nigeriaStates)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(s => (
+                    <SelectItem key={s.code} value={s.code.toLowerCase()}>{s.name}</SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -333,10 +337,10 @@ export default function PolicyBriefs() {
 
     const borno = stateStats('Borno')
     const yobe = stateStats('Yobe')
-    const bayAll = computeSummary(allRows)
-    const bayUnemploy = allRows.filter(r => r.indicator === 'Unemployment Rate')
-    const bayAvgUnemp = bayUnemploy.length
-      ? +(bayUnemploy.reduce((s, r) => s + r.y2025, 0) / bayUnemploy.length).toFixed(1)
+    const nationalAll = computeSummary(allRows)
+    const nationalUnemploy = allRows.filter(r => r.indicator === 'Unemployment Rate')
+    const nationalAvgUnemp = nationalUnemploy.length
+      ? +(nationalUnemploy.reduce((s, r) => s + r.y2025, 0) / nationalUnemploy.length).toFixed(1)
       : 0
 
     return policyBriefs.map(b => {
@@ -356,12 +360,12 @@ export default function PolicyBriefs() {
         return {
           ...b,
           keyPoints: [
-            `Youth unemployment across BAY averaging ${bayAvgUnemp}%`,
-            `${bayAll.totalDisplacement2025.toLocaleString()} total displacement cases across ${bayAll.totalLGAs} LGAs`,
-            `${bayAll.totalConflict2025.toLocaleString()} conflict incidents recorded BAY-wide (2025)`,
+            `Youth unemployment nationwide averaging ${nationalAvgUnemp}%`,
+            `${nationalAll.totalDisplacement2025.toLocaleString()} total displacement cases across ${nationalAll.totalLGAs} LGAs`,
+            `${nationalAll.totalConflict2025.toLocaleString()} conflict incidents recorded nationwide (2025)`,
             `Vocational training programs show 4:1 community ROI`,
           ],
-          summary: `BAY States face a critical youth employment crisis with an average unemployment rate of ${bayAvgUnemp}%. Across ${bayAll.totalLGAs} LGAs, ${bayAll.totalDisplacement2025.toLocaleString()} displacement cases and ${bayAll.totalConflict2025.toLocaleString()} conflict incidents were recorded in 2025. Targeted investment in vocational training and digital skills is essential.`,
+          summary: `Nigeria faces a critical youth employment crisis with an average unemployment rate of ${nationalAvgUnemp}%. Across ${nationalAll.totalLGAs} LGAs, ${nationalAll.totalDisplacement2025.toLocaleString()} displacement cases and ${nationalAll.totalConflict2025.toLocaleString()} conflict incidents were recorded in 2025. Targeted investment in vocational training and digital skills is essential.`,
         }
       }
       if (b.id === 3) {
@@ -391,8 +395,8 @@ export default function PolicyBriefs() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2">BAY Policy Briefs</h1>
-          <p className="text-muted-foreground">Policy recommendations and analysis for Borno, Adamawa, and Yobe states</p>
+          <h1 className="text-4xl font-bold mb-2">Policy Briefs</h1>
+          <p className="text-muted-foreground">Policy recommendations and analysis across Nigeria</p>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}

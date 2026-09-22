@@ -13,12 +13,12 @@
   },
   "hero": {
     "badge": "Real-Time Intelligence",
-    "title": "BAY States Intelligence on Youth Peace and Security",
-    "description": "Real-time humanitarian and youth data intelligence for Borno, Adamawa, and Yobe states. Access comprehensive insights driving policy and impact.",
+    "title": "Nigeria Intelligence on Youth Peace and Security",
+    "description": "Real-time humanitarian and youth data intelligence across Nigeria — all 36 states and the FCT. Access comprehensive insights driving policy and impact.",
     "ctaPrimary": "Explore Platform",
     "ctaSecondary": "View Documentation",
     "stat1Value": "3",
-    "stat1Label": "BAY States",
+    "stat1Label": "States Live",
     "stat2Label": "People in Need",
     "stat3Label": "Regional Data"
   },
@@ -27,8 +27,8 @@
     "description": "Everything you need to understand humanitarian challenges and youth development opportunities at scale.",
     "cards": [
       {
-        "title": "BAY States Coverage",
-        "description": "All 23 LGAs across Borno, Adamawa, Yobe",
+        "title": "State Coverage",
+        "description": "23 LGAs live today, more states coming online",
         "value": "23",
         "metric": "LGAs tracked"
       },
@@ -46,16 +46,16 @@
       },
       {
         "title": "Community Impact",
-        "description": "Reaching 7.25M people in need across BAY",
+        "description": "Reaching 7.25M people in need",
         "value": "7.25M",
         "metric": "people reached"
       }
     ]
   },
   "geographic": {
-    "badge": "BAY States Analysis",
-    "title": "BAY States Humanitarian Index",
-    "description": "Real-time snapshot of humanitarian need and youth challenges across Borno, Adamawa, and Yobe."
+    "badge": "Nigeria Analysis",
+    "title": "Nigeria Humanitarian Index",
+    "description": "Real-time snapshot of humanitarian need and youth challenges across Nigeria's states."
   },
   "features": {
     "title": "Platform Features",
@@ -63,19 +63,19 @@
     "items": [
       {
         "title": "State & LGA Insights",
-        "description": "Deep-dive into BAY state-specific and LGA-level data with humanitarian and youth metrics."
+        "description": "Deep-dive into state-specific and LGA-level data with humanitarian and youth metrics."
       },
       {
         "title": "Comparative Analysis",
-        "description": "Compare metrics across Borno, Adamawa, and Yobe to identify regional patterns."
+        "description": "Compare metrics across states to identify regional patterns."
       },
       {
         "title": "AI-Powered Trends",
-        "description": "Machine learning discovers crisis patterns and predictive trends specific to the BAY region."
+        "description": "Machine learning discovers crisis patterns and predictive trends across Nigeria."
       },
       {
         "title": "Policy Briefs",
-        "description": "Generate policy recommendations backed by BAY-focused real-time data and analysis."
+        "description": "Generate policy recommendations backed by real-time data and analysis."
       }
     ]
   },
@@ -108,7 +108,7 @@
     ]
   },
   "cta": {
-    "title": "Explore BAY Data Today",
+    "title": "Explore Nigeria Data Today",
     "description": "Join policymakers and humanitarian organizations using HUMAID to drive impact in Northeast Nigeria.",
     "ctaPrimary": "Start Exploring",
     "ctaSecondary": "Schedule Demo"

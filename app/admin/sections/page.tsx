@@ -9,8 +9,8 @@ import { ChevronUp, ChevronDown, GripVertical, Save, RotateCcw, Loader2 } from '
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero Banner',
   indicators: 'Platform Capabilities',
-  geographic: 'BAY States Map',
-  'borno-tracker': 'Borno LGA Tracker',
+  geographic: 'Nigeria States Map',
+  'borno-tracker': 'LGA Tracker',
   features: 'Platform Features',
   impact: 'Impact Stories',
   cta: 'Call to Action',
@@ -19,7 +19,7 @@ const SECTION_LABELS: Record<string, string> = {
 const SECTION_DESCRIPTIONS: Record<string, string> = {
   hero: 'Main banner with title, description, CTAs, and animated stats',
   indicators: 'Four metric cards showing platform capabilities',
-  geographic: 'BAY States humanitarian index with interactive map bubbles',
+  geographic: 'Nigeria humanitarian index with interactive map bubbles',
   'borno-tracker': 'Live LGA performance tracker table sourced from Google Sheets',
   features: 'Feature cards describing platform tools and analysis',
   impact: 'Testimonials and success stories from humanitarian organizations',
